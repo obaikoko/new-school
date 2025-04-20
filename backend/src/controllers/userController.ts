@@ -47,7 +47,8 @@ const registerUser = asyncHandler(async (req, res) => {
         message: 'Validation failed',
         errors: error.errors,
       });
-    } else {
+    } 
+    else {
       throw error;
     }
   }
