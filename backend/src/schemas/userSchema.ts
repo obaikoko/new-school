@@ -1,11 +1,21 @@
 import { z } from 'zod';
-import { insertUserSchema } from '../validators';
+import { insertUserSchema, insertStudentSchema } from '../validators';
 
 export type User = z.infer<typeof insertUserSchema> & {
   id: string;
+  isAdmin: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type Student = z.infer<typeof insertStudentSchema> & {
+  studentId: string;
+  password: string;
+  isStudent: boolean;
+  isPaid: boolean;
   resetPasswordToken: string;
-  resetPasswordExpires: string;
-  isAdmin: string;
-  createdAt: string;
-  updatedAt: string;
+  resetPasswordExpires: Date;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
 };

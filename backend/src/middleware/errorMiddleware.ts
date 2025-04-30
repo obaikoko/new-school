@@ -1,5 +1,5 @@
-
 import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 
 // 404 handler
 export const notFound = (
@@ -22,6 +22,13 @@ export const errorHandler = (
   let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   let message = err.message;
 
+  if (err instanceof ZodError) {
+    res.status(400).json({
+      message: 'Validation failed',
+      errors: err.errors,
+    });
+  }
+
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
     statusCode = 404;
     message = 'Resource not found';
@@ -31,6 +38,4 @@ export const errorHandler = (
     message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
-
-  next(); // optional: only if you want to pass the error further
 };
