@@ -21,6 +21,7 @@ const authUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = authUserSchema.parse(req.body);
+      console.log({email: email, password: password})
 
       const user = await prisma.users.findUnique({ where: { email } });
 

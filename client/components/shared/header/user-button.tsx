@@ -10,7 +10,7 @@ import {
 import { UserIcon } from 'lucide-react';
 
 const UserButton = async () => {
-  const session = true;
+  const session = false;
 
   if (!session) {
     return (
