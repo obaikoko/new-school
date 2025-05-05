@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertStudentSchema = exports.updateUserSchema = exports.authUserSchema = exports.insertUserSchema = void 0;
+exports.resetPasswordSchema = exports.forgetPasswordSchema = exports.sendBulkMailSchema = exports.sendSingleMailSchema = exports.insertStudentSchema = exports.updateUserSchema = exports.authUserSchema = exports.insertUserSchema = void 0;
 const zod_1 = require("zod");
 exports.insertUserSchema = zod_1.z.object({
     email: zod_1.z.string().email('Invalid email address'),
@@ -15,9 +15,25 @@ exports.authUserSchema = zod_1.z.object({
     password: zod_1.z.string().min(6, 'password must be at least 6 characters'),
 });
 exports.updateUserSchema = zod_1.z.object({
-    firstName: zod_1.z.string().optional(),
-    lastName: zod_1.z.string().optional(),
-    email: zod_1.z.string().email().optional(),
+    firstName: zod_1.z
+        .string()
+        .min(3, 'First name must be at least 3 letters')
+        .optional(),
+    lastName: zod_1.z
+        .string()
+        .min(3, 'Last name must be at least 3 letters')
+        .optional(),
+    email: zod_1.z.string().email('Add a valide email address').optional(),
+    password: zod_1.z
+        .string()
+        .min(6, 'password must be at least 6 characters')
+        .optional(),
+    level: zod_1.z.string().optional(),
+    subLevel: zod_1.z.string().optional(),
+    isAdmin: zod_1.z
+        .string()
+        .transform((val) => val === 'true')
+        .optional(),
 });
 exports.insertStudentSchema = zod_1.z.object({
     firstName: zod_1.z.string().min(3, 'First name must be at least 3 letters'),
@@ -37,4 +53,31 @@ exports.insertStudentSchema = zod_1.z.object({
     sponsorEmail: zod_1.z.string().email('Invalid email address').optional().nullable(),
     imageUrl: zod_1.z.string().optional().nullable(),
     imagePublicId: zod_1.z.string().optional().nullable(),
+});
+exports.sendSingleMailSchema = zod_1.z.object({
+    email: zod_1.z.string().email('Invalid email address'),
+    subject: zod_1.z.string().min(1, 'Subject is required'),
+    text: zod_1.z.string().min(1, 'Email body text is required'),
+});
+// export const singleMailSchema = z.object({
+//   email: z.string().email('Invali email address'),
+//   subject: z.string().min(1, 'Subject is required'),
+//   text: z.string().min(1, 'Email body text is required'),
+// });
+exports.sendBulkMailSchema = zod_1.z.object({
+    emails: zod_1.z.array(zod_1.z.string()),
+    subject: zod_1.z.string().min(1, 'Subject is required'),
+    text: zod_1.z.string().min(1, 'Email body text is required'),
+});
+exports.forgetPasswordSchema = zod_1.z.object({
+    email: zod_1.z.string().email('Add a valid email address'),
+});
+exports.resetPasswordSchema = zod_1.z.object({
+    password: zod_1.z
+        .string()
+        .min(8, 'Password must be at least 8 characters long')
+        .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
+        .regex(/[a-z]/, 'Password must include at least one lowercase letter')
+        .regex(/[0-9]/, 'Password must include at least one number')
+        .regex(/[\W_]/, 'Password must include at least one special character'),
 });

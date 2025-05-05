@@ -5,5 +5,7 @@ declare namespace NodeJS {
     API_KEY: string;
     API_SECRET: string;
     DEFAULTPASSWORD: string;
+    GMAILEMAIL: string;
+    GMAILPASSWORD: string;
   }
 }

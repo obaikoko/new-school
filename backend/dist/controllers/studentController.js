@@ -29,7 +29,7 @@ const registerStudent = (0, express_async_handler_1.default)((req, res) => __awa
         //     throw new Error('Please attach an image');
         //   }
         // Check if student already exists
-        const existingStudent = yield prisma_1.prisma.student.findFirst({
+        const existingStudent = yield prisma_1.prisma.students.findFirst({
             where: {
                 firstName: { equals: firstName, mode: 'insensitive' },
                 lastName: { equals: lastName, mode: 'insensitive' },
@@ -61,7 +61,7 @@ const registerStudent = (0, express_async_handler_1.default)((req, res) => __awa
         };
         const currentYear = new Date().getFullYear();
         const classCode = classCodeMapping[level];
-        const count = yield prisma_1.prisma.student.count({
+        const count = yield prisma_1.prisma.students.count({
             where: { level },
         });
         const studentId = `BDIS/${currentYear}/${classCode}/${(count + 1)
@@ -71,7 +71,7 @@ const registerStudent = (0, express_async_handler_1.default)((req, res) => __awa
         //     folder: 'Bendonald',
         //   });
         const hashedPassword = yield bcrypt_1.default.hash(process.env.DEFAULTPASSWORD, 10);
-        const student = yield prisma_1.prisma.student.create({
+        const student = yield prisma_1.prisma.students.create({
             data: {
                 userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
                 firstName,

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { insertUserSchema, insertStudentSchema } from '../validators';
+import {
+  insertUserSchema,
+  insertStudentSchema,
+  sendSingleMailSchema,
+  sendBulkMailSchema,
+} from '../validators';
 
 export type User = z.infer<typeof insertUserSchema> & {
   id: string;
@@ -19,3 +24,6 @@ export type Student = z.infer<typeof insertStudentSchema> & {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type SendSingleMailProps = z.infer<typeof sendSingleMailSchema>;
+export type SendBulkMailProps = z.infer<typeof sendBulkMailSchema>;

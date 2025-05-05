@@ -8,41 +8,41 @@ datasource db {
 }
 
 model users {
-  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
-  email                String    @unique
+  id                   String     @id @default(auto()) @map("_id") @db.ObjectId
+  email                String     @unique
   firstName            String
   lastName             String
   level                String?
   subLevel             String?
   password             String
   resetPasswordToken   String?
-  resetPasswordExpires String?
-  isAdmin              Boolean   @default(false)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  resetPasswordExpires DateTime?
+  isAdmin              Boolean    @default(false)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
   student              students[]
 }
 
 model students {
-  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
-  firstName           String
-  lastName            String
-  otherName           String?
-  dateOfBirth         DateTime
-  level               String
-  subLevel            String
-  gender              String
-  yearAdmitted        DateTime
-  studentId           String?
-  stateOfOrigin       String
-  localGvt            String
-  homeTown            String
-  sponsorName         String?
-  sponsorRelationship String?
-  sponsorPhoneNumber  String?
-  sponsorEmail        String?
-  imageUrl      String?
-  imagePublicId String?
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  firstName            String
+  lastName             String
+  otherName            String?
+  dateOfBirth          DateTime
+  level                String
+  subLevel             String
+  gender               String
+  yearAdmitted         DateTime
+  studentId            String?
+  stateOfOrigin        String
+  localGvt             String
+  homeTown             String
+  sponsorName          String?
+  sponsorRelationship  String?
+  sponsorPhoneNumber   String?
+  sponsorEmail         String?
+  imageUrl             String?
+  imagePublicId        String?
   password             String
   isStudent            Boolean   @default(true)
   isPaid               Boolean   @default(false)
@@ -50,7 +50,7 @@ model students {
   resetPasswordExpires DateTime?
 
   userId String @db.ObjectId
-  user   users   @relation(fields: [userId], references: [id])
+  user   users  @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

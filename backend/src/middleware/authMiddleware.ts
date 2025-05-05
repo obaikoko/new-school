@@ -22,11 +22,11 @@ const protect = asyncHandler(
         process.env.JWT_SECRET!
       ) as DecodedToken;
 
-      const user = await prisma.user.findUnique({
+      const user = await prisma.users.findUnique({
         where: { id: decoded.userId },
       });
 
-      const student = await prisma.student.findUnique({
+      const student = await prisma.students.findUnique({
         where: { id: decoded.userId },
       });
 

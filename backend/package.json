@@ -17,6 +17,7 @@
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.14.1",
+    "@types/nodemailer": "^6.4.17",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   },
@@ -31,6 +32,7 @@
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "nodemailer": "^6.10.1",
     "prisma": "^6.6.0",
     "zod": "^3.24.3"
   }
