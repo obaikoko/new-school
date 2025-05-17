@@ -9,10 +9,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserIcon } from 'lucide-react';
 
-const UserButton = async () => {
-  const session = false;
+const UserButton = () => {
 
-  if (!session) {
+  const user = true
+  if (!user) {
     return (
       <Button asChild>
         <Link href='/sign-in'>
@@ -22,7 +22,7 @@ const UserButton = async () => {
     );
   }
 
-  const firstInitial = session.user?.name?.charAt(0).toUpperCase() ?? 'U';
+  const firstInitial = user.user?.firstName?.charAt(0).toUpperCase() ?? 'U';
 
   return (
     <div className='flex gap-2 items-center'>
@@ -41,10 +41,10 @@ const UserButton = async () => {
           <DropdownMenuLabel className='font-normal'>
             <div className='flex flex-col space-y-1'>
               <div className='text-sm font-medium leading-none'>
-                {session.user?.name}
+                {user.user?.firstName}
               </div>
               <div className='text-sm text-muted-foreground leading-none'>
-                {session.user?.email}
+                {user.user?.email}
               </div>
             </div>
           </DropdownMenuLabel>
@@ -60,7 +60,7 @@ const UserButton = async () => {
             </Link>
           </DropdownMenuItem>
           {/* 
-          {session?.user?.role === 'admin' && (
+          {user?.user?.role === 'admin' && (
             <DropdownMenuItem>
               <Link href='/admin/overview' className='w-full'>
                 Admin
@@ -69,7 +69,7 @@ const UserButton = async () => {
           )} */}
 
           <DropdownMenuItem className='p-0 mb-1'>
-            <form  className='w-full'>
+            <form className='w-full'>
               <Button
                 className='w-full py-4 px-2 h-4 justify-start'
                 variant='ghost'

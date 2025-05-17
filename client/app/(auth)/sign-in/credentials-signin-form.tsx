@@ -39,13 +39,23 @@ const CrendentialsSignInForm = () => {
 
       toast.success(`Welcome ${res.firstName} ${res.lastName}`);
       if (res.isAdmin) {
-        router.push('/dashboard');
+        router.push('/admin/dashboard');
       } else {
-        router.push('/results');
+        router.push('/users/dashboard');
       }
     } catch (err) {
-      toast.error(`${err.data.message}`);
+      // If the backend returns Zod-style formatted errors
+      if (err?.data?.errors && typeof err.data.errors === 'object') {
+        // Loop through field errors
+        Object.entries(err.data.errors).forEach(([field, message]) => {
+          toast.error(`${field}: ${message}`);
+        });
+      } else {
+        // Fallback for other error types
+        toast.error(err?.data?.message || 'Login failed');
+      }
     }
+    
   };
 
   const SignInButton = () => {
@@ -71,6 +81,7 @@ const CrendentialsSignInForm = () => {
               required
               autoComplete='email'
               onChange={handleInputChange}
+              placeholder='john@gmail.com'
             ></Input>
           </div>
 
@@ -85,6 +96,7 @@ const CrendentialsSignInForm = () => {
               required
               autoComplete='password'
               onChange={handleInputChange}
+              placeholder='*********'
             ></Input>
             <span
               onClick={() => setShowPassword(!showPassword)}

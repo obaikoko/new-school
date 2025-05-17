@@ -12,6 +12,8 @@ model users {
   email                String     @unique
   firstName            String
   lastName             String
+  role                 String     @default("teacher")
+  status               String     @default("active")
   level                String?
   subLevel             String?
   password             String

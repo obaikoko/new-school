@@ -21,7 +21,6 @@ const authUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = authUserSchema.parse(req.body);
-      console.log({email: email, password: password})
 
       const user = await prisma.users.findUnique({ where: { email } });
 
@@ -96,7 +95,7 @@ const registerUser = asyncHandler(
 
       res.status(201);
       res.json({
-        message: 'User registered successfully',
+        message: `${user.firstName} registered successfully`,
         user: {
           id: user.id,
           firstName: user.firstName,
@@ -146,12 +145,22 @@ const getUserProfile = asyncHandler(
 const updateUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const validateData = updateUserSchema.parse(req.body);
-    const { firstName, lastName, email, password, level, subLevel, isAdmin } =
-      validateData;
-    console.log('Raw isAdmin:', req.body.isAdmin);
-    console.log('Parsed isAdmin:', validateData.isAdmin);
+    const {
+      userId,
+      firstName,
+      lastName,
+      email,
+      password,
+      level,
+      role,
+      status,
+      subLevel,
+      isAdmin,
+    } = validateData;
+    console.log({userRole: role})
+
     const user = await prisma.users.findFirst({
-      where: { id: req.params.id },
+      where: { id: userId },
     });
     if (!user) {
       res.status(404);
@@ -177,6 +186,8 @@ const updateUser = asyncHandler(
         lastName: lastName ?? user.lastName,
         email: email ?? user.email,
         level: level ?? user.level,
+        role: role ?? user.role,
+        status: status ?? user.status,
         subLevel: subLevel ?? user.subLevel,
         isAdmin: isAdmin ?? user.isAdmin,
       },
@@ -209,6 +220,8 @@ const getUsers = asyncHandler(
           level: true,
           subLevel: true,
           isAdmin: true,
+          role: true,
+          status: true,
         },
       });
       res.json(users);

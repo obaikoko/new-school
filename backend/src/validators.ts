@@ -14,6 +14,7 @@ export const authUserSchema = z.object({
   password: z.string().min(6, 'password must be at least 6 characters'),
 });
 export const updateUserSchema = z.object({
+  userId: z.string().min(3, 'UserId required'),
   firstName: z
     .string()
     .min(3, 'First name must be at least 3 letters')
@@ -28,6 +29,8 @@ export const updateUserSchema = z.object({
     .min(6, 'password must be at least 6 characters')
     .optional(),
   level: z.string().optional(),
+  role: z.string().optional(),
+  status: z.string().optional(),
   subLevel: z.string().optional(),
   isAdmin: z
     .string()
