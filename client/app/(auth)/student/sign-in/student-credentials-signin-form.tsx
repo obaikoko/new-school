@@ -3,24 +3,23 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-// import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { useLoginMutation } from '@/src/features/auth/usersApiSlice';
-import { setCredentials } from '@/src/features/auth/authSlice';
+import { useStudentLoginMutation } from '@/src/features/auth/studentsApiSlice';import { setCredentials } from '@/src/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
 import {
-  authResponseSchema,
-  authUserSchema,
-} from '@/validators/userValidators';
+  authStudentResponseSchema,
+  authStudentSchema,
+} from '@/validators/studentValidation';
 import { showZodErrors } from '@/lib/utils';
-import { AuthUserForm } from '@/schemas/userSchema';
+import { AuthStudentForm } from '@/schemas/studentSchema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-const CrendentialsSignInForm = () => {
-  const [login, { isLoading }] = useLoginMutation();
+const StudentCredentialsSignInForm = () => {
+  const [login, { isLoading }] = useStudentLoginMutation();
+
   const router = useRouter();
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
@@ -29,13 +28,13 @@ const CrendentialsSignInForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<AuthUserForm>({
-    resolver: zodResolver(authUserSchema),
+  } = useForm<AuthStudentForm>({
+    resolver: zodResolver(authStudentSchema),
   });
 
-  const onSubmit = async (data: AuthUserForm) => {
+  const onSubmit = async (data: AuthStudentForm) => {
     try {
-      const result = authResponseSchema.safeParse(await login(data).unwrap());
+      const result = authStudentResponseSchema.safeParse(await login(data).unwrap());
 
       if (!result.success) {
         toast.error('Invalid response from server');
@@ -47,7 +46,7 @@ const CrendentialsSignInForm = () => {
       dispatch(setCredentials(res));
 
       toast.success(`Welcome ${res.firstName} ${res.lastName}`);
-      router.push(res.isAdmin ? '/admin/dashboard' : '/users/dashboard');
+      router.push('/student/dashboard');
     } catch (err) {
       showZodErrors(err);
     }
@@ -57,18 +56,18 @@ const CrendentialsSignInForm = () => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className='space-y-6'>
         <div>
-          <Label htmlFor='email' className='my-2'>
-            Email
+          <Label htmlFor='studentId' className='my-2'>
+            StudentId
           </Label>
           <Input
-            id='email'
-            type='email'
-            autoComplete='email'
-            placeholder='john@gmail.com'
-            {...register('email')}
+            id='studentId'
+            type='studentId'
+            autoComplete='studentId'
+            placeholder='BDIS/2025/J1/001'
+            {...register('studentId')}
           />
-          {errors.email && (
-            <p className='text-red-500 text-sm mt-1'>{errors.email.message}</p>
+          {errors.studentId && (
+            <p className='text-red-500 text-sm mt-1'>{errors.studentId.message}</p>
           )}
 
           <div className='mb-6 w-full relative mt-4'>
@@ -101,9 +100,9 @@ const CrendentialsSignInForm = () => {
         </Button>
 
         <div className='text-center text-sm text-muted-foreground'>
-          Are you a student?{' '}
-          <Link href='/student/sign-in' className='link'>
-            Signin to your student account
+          Not a student?{' '}
+          <Link href='/sign-in' className='link'>
+            Signin to your account
           </Link>
         </div>
       </div>
@@ -111,4 +110,4 @@ const CrendentialsSignInForm = () => {
   );
 };
 
-export default CrendentialsSignInForm;
+export default StudentCredentialsSignInForm;

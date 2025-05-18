@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Loader2, Pencil, Trash } from 'lucide-react';
+import { Loader2, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -63,7 +63,18 @@ const UsersPage = () => {
   };
 
   if (isError) {
-    return <div className='text-center text-3xl'>Error loading users...</div>;
+    return (
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            Unable To Fetch Users, Check Your Internet Connection
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

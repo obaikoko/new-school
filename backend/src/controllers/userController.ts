@@ -22,21 +22,44 @@ const authUser = asyncHandler(
     try {
       const { email, password } = authUserSchema.parse(req.body);
 
-      const user = await prisma.users.findUnique({ where: { email } });
+      const user = await prisma.users.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          level: true,
+          subLevel: true,
+          isAdmin: true,
+          role: true,
+          status: true,
+          password: true,
+        },
+      });
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
         res.status(401);
         throw new Error('Invalid Email or Password');
       }
 
-      generateToken(res, user.id);
-      res.status(200).json({
-        _id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        isAdmin: user.isAdmin,
+      const authenticatedUser = await prisma.users.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          level: true,
+          subLevel: true,
+          isAdmin: true,
+          role: true,
+          status: true,
+        },
       });
+
+      generateToken(res, user.id);
+      res.status(200).json(authenticatedUser);
     } catch (error) {
       throw error;
     }
@@ -91,18 +114,21 @@ const registerUser = asyncHandler(
           email,
           password: hashedPassword,
         },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          level: true,
+          subLevel: true,
+          isAdmin: true,
+          role: true,
+          status: true,
+        },
       });
 
       res.status(201);
-      res.json({
-        message: `${user.firstName} registered successfully`,
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-        },
-      });
+      res.json(user);
     } catch (error) {
       throw error;
     }
@@ -157,7 +183,6 @@ const updateUser = asyncHandler(
       subLevel,
       isAdmin,
     } = validateData;
-    console.log({userRole: role})
 
     const user = await prisma.users.findFirst({
       where: { id: userId },

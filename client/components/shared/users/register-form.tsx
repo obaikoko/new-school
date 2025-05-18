@@ -7,93 +7,100 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { useRegisterMutation } from '@/src/features/auth/usersApiSlice';
 import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { registerUserResponse, registerUserSchema } from '@/validators/userValidators';
+import { RegisterUserForm } from '@/schemas/userSchema';
+import { showZodErrors } from '@/lib/utils';
 
 const RegisterUsersForm = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterUserForm>({
+    resolver: zodResolver(registerUserSchema),
   });
 
-  const [register, { isLoading }] = useRegisterMutation();
+  const [registerUser, { isLoading }] = useRegisterMutation();
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (key: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { firstName, lastName, email, password } = formData;
-
+  const onSubmit = async (data: RegisterUserForm) => {
     try {
-      const res = await register({
-        firstName,
-        lastName,
-        email,
-        password,
-      }).unwrap();
-      if (res) {
-        toast.success(res.message);
+      const result = registerUserResponse.safeParse(
+        await registerUser(data).unwrap()
+      );
+
+      if (!result.success) {
+        toast.error('Invalid response from server');
+        console.error(result.error);
+        return;
       }
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-      });
+
+      const res = result.data;
+
+      toast.success(`${res.firstName} registered successfully`);
     } catch (err) {
-      if (err?.data?.errors && typeof err.data.errors === 'object') {
-        Object.entries(err.data.errors).forEach(([field, message]) => {
-          toast.error(`${field}: ${message}`);
-        });
-      } else {
-        toast.error(err?.data?.message || 'Registration failed');
-      }
+      showZodErrors(err);
     }
   };
 
   return (
-    <form className='space-y-6' onSubmit={handleSubmit}>
+    <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div>
           <Label htmlFor='firstName'>First Name</Label>
           <Input
             id='firstName'
-            value={formData.firstName}
-            onChange={(e) => handleChange('firstName', e.target.value)}
-            placeholder='John'
+            type='text'
+            autoComplete='firstName'
+            placeholder='First Name'
+            {...register('firstName')}
           />
+
+          {errors.firstName && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.firstName.message}
+            </p>
+          )}
         </div>
         <div>
           <Label htmlFor='lastName'>Last Name</Label>
           <Input
             id='lastName'
-            value={formData.lastName}
-            onChange={(e) => handleChange('lastName', e.target.value)}
-            placeholder='Doe'
+            type='text'
+            autoComplete='lastName'
+            placeholder='Last Name'
+            {...register('lastName')}
           />
+          {errors.lastName && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.lastName.message}
+            </p>
+          )}
         </div>
         <div className='md:col-span-2'>
           <Label htmlFor='email'>Email</Label>
           <Input
             type='email'
             id='email'
-            value={formData.email}
-            onChange={(e) => handleChange('email', e.target.value)}
+            autoComplete='email'
             placeholder='user@example.com'
+            {...register('email')}
           />
+          {errors.email && (
+            <p className='text-red-500 text-sm mt-1'>{errors.email.message}</p>
+          )}
         </div>
         <div className='md:col-span-2 relative'>
           <Label htmlFor='password'>Password</Label>
           <Input
             type={showPassword ? 'text' : 'password'}
             id='password'
-            value={formData.password}
-            onChange={(e) => handleChange('password', e.target.value)}
+            autoComplete='current-password'
             placeholder='********'
+            {...register('password')}
           />
           <span
             onClick={() => setShowPassword(!showPassword)}
@@ -101,6 +108,11 @@ const RegisterUsersForm = () => {
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </span>
+          {errors.password && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.password.message}
+            </p>
+          )}
         </div>
       </div>
 
