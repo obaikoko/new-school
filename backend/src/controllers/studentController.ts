@@ -183,12 +183,31 @@ const registerStudent = asyncHandler(
           //   imageUrl: uploadResult.secure_url,
           //   imagePublicId: uploadResult.public_id,
         },
+        select: {
+          id: true,
+          studentId: true,
+          firstName: true,
+          lastName: true,
+          otherName: true,
+          dateOfBirth: true,
+          level: true,
+          subLevel: true,
+          isStudent: true,
+          isPaid: true,
+          gender: true,
+          yearAdmitted: true,
+          stateOfOrigin: true,
+          localGvt: true,
+          homeTown: true,
+          sponsorEmail: true,
+          sponsorName: true,
+          sponsorPhoneNumber: true,
+          sponsorRelationship: true,
+          imageUrl: true,
+        },
       });
 
-      res.status(201).json({
-        message: 'Student registered successfully',
-        student,
-      });
+      res.status(201).json(student);
     } catch (error) {
       throw error;
     }

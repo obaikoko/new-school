@@ -45,7 +45,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
     }),
     registerStudent: builder.mutation({
       query: (data) => ({
-        url: `${STUDENTS_URL}`,
+        url: `${STUDENTS_URL}/register`,
         method: 'POST',
         body: data,
         credentials: 'include',

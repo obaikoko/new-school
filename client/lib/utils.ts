@@ -13,6 +13,6 @@ export const  showZodErrors = (error: any) => {
       toast.error(`${field}: ${message}`);
     });
   } else {
-    toast.error(error?.data?.message || 'Login failed');
+    toast.error(error?.data?.message || 'An Error occured');
   }
 }
