@@ -106,6 +106,11 @@ const CrendentialsSignInForm = () => {
             Signin to your student account
           </Link>
         </div>
+        <div className='text-center text-sm text-muted-foreground'>
+          <Link href='/forget-password' className='link'>
+            Forgot Password?{' '}
+          </Link>
+        </div>
       </div>
     </form>
   );

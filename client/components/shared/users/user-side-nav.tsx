@@ -65,6 +65,7 @@ const UserSideNav = () => {
 
         <div className='mt-auto'>
           <SignOutButton />
+          <LogOut/>
         </div>
       </aside>
     </>

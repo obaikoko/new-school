@@ -25,7 +25,7 @@ const TeacherDashboardPage = () => {
 
       {/* Timetable Preview */}
       <div className='bg-white dark:bg-gray-800 rounded-2xl shadow p-4'>
-        <h2 className='text-lg font-semibold mb-3'>Today's Timetable</h2>
+        <h2 className='text-lg font-semibold mb-3'>Today Timetable</h2>
         <ul className='space-y-2'>
           <li className='flex justify-between'>
             <span>8:00 AM - 9:00 AM</span>

@@ -15,6 +15,7 @@ exports.authUserSchema = zod_1.z.object({
     password: zod_1.z.string().min(6, 'password must be at least 6 characters'),
 });
 exports.updateUserSchema = zod_1.z.object({
+    userId: zod_1.z.string().min(3, 'UserId required'),
     firstName: zod_1.z
         .string()
         .min(3, 'First name must be at least 3 letters')
@@ -29,6 +30,8 @@ exports.updateUserSchema = zod_1.z.object({
         .min(6, 'password must be at least 6 characters')
         .optional(),
     level: zod_1.z.string().optional(),
+    role: zod_1.z.string().optional(),
+    status: zod_1.z.string().optional(),
     subLevel: zod_1.z.string().optional(),
     isAdmin: zod_1.z
         .string()

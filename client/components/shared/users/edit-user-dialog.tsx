@@ -23,15 +23,28 @@ const ROLES = ['Admin', 'Principal', 'HM', 'Head Of Department', 'Teacher'];
 const LEVELS = ['JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
 const SUB_LEVELS = ['A', 'B', 'C', 'D', 'E'];
 const STATUSES = ['active', 'inactive', 'suspended'];
-
 interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  formData: any;
-  setFormData: (formData: any) => void;
+  formData: EditUserFormData;
+  setFormData: React.Dispatch<React.SetStateAction<EditUserFormData>>;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
+  title?: string
 }
+
+
+ interface EditUserFormData {
+  userId?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  status?: string;
+  level: string;
+  subLevel: string;
+}
+
 
 export default function EditUserDialog({
   open,
@@ -42,18 +55,20 @@ export default function EditUserDialog({
   isLoading,
 }: EditUserDialogProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev: any) => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
-
-  const handleSelectChange = (field: string, value: string) => {
-    setFormData((prev: any) => ({
+  
+  const handleSelectChange = (field: keyof EditUserFormData, value: string) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
+  
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

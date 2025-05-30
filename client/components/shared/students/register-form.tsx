@@ -1,10 +1,7 @@
 'use client';
-
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +16,7 @@ import {
 import { showZodErrors } from '@/lib/utils';
 import { RegisterStudentForm } from '@/schemas/studentSchema';
 import {
-  authStudentResponseSchema,
+  studentSchema,
   registerStudentSchema,
 } from '@/validators/studentValidation';
 import { useRegisterStudentMutation } from '@/src/features/students/studentApiSlice'; // if using RTK
@@ -38,7 +35,7 @@ const RegisterStudentsForm = () => {
 
   const onSubmit = async (data: RegisterStudentForm) => {
     try {
-      const result = authStudentResponseSchema.safeParse(
+      const result = studentSchema.safeParse(
         await registerStudent(data).unwrap()
       );
 

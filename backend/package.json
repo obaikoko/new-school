@@ -16,6 +16,7 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.14.1",
     "@types/nodemailer": "^6.4.17",
@@ -31,10 +32,12 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.1",
     "prisma": "^6.6.0",
+    "puppeteer": "^24.9.0",
     "zod": "^3.24.3"
   }
 }

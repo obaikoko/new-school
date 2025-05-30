@@ -34,7 +34,7 @@ model students {
   level                String
   subLevel             String
   gender               String
-  yearAdmitted         DateTime
+  yearAdmitted         DateTime?
   studentId            String?
   stateOfOrigin        String
   localGvt             String

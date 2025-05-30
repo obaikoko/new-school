@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = exports.forgetPassword = exports.sendMail = exports.deleteUser = exports.getUserById = exports.getUsers = exports.updateUser = exports.getUserProfile = exports.logoutUser = exports.authUser = exports.registerUser = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const validators_1 = require("../validators");
+const usersValidators_1 = require("../validators/usersValidators");
 const prisma_1 = require("../config/db/prisma");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
@@ -25,20 +25,43 @@ const crypto_1 = __importDefault(require("crypto"));
 // @access Public
 const authUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password } = validators_1.authUserSchema.parse(req.body);
-        const user = yield prisma_1.prisma.users.findUnique({ where: { email } });
+        const { email, password } = usersValidators_1.authUserSchema.parse(req.body);
+        const user = yield prisma_1.prisma.users.findUnique({
+            where: { email },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                level: true,
+                subLevel: true,
+                isAdmin: true,
+                role: true,
+                status: true,
+                password: true,
+            },
+        });
         if (!user || !(yield bcrypt_1.default.compare(password, user.password))) {
             res.status(401);
             throw new Error('Invalid Email or Password');
         }
-        (0, generateToken_1.default)(res, user.id);
-        res.status(200).json({
-            _id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            isAdmin: user.isAdmin,
+        const authenticatedUser = yield prisma_1.prisma.users.findUnique({
+            where: { email },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                level: true,
+                subLevel: true,
+                isAdmin: true,
+                role: true,
+                status: true,
+                createdAt: true,
+            },
         });
+        (0, generateToken_1.default)(res, user.id);
+        res.status(200).json(authenticatedUser);
     }
     catch (error) {
         throw error;
@@ -64,7 +87,7 @@ exports.logoutUser = logoutUser;
 // @route POST /api/users/register
 const registerUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const validateData = validators_1.insertUserSchema.parse(req.body);
+        const validateData = usersValidators_1.insertUserSchema.parse(req.body);
         const { firstName, lastName, email, password } = validateData;
         // check if user already exist
         const userExit = yield prisma_1.prisma.users.findFirst({
@@ -86,17 +109,21 @@ const registerUser = (0, express_async_handler_1.default)((req, res) => __awaite
                 email,
                 password: hashedPassword,
             },
-        });
-        res.status(201);
-        res.json({
-            message: 'User registered successfully',
-            user: {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                level: true,
+                subLevel: true,
+                isAdmin: true,
+                role: true,
+                status: true,
+                createdAt: true,
             },
         });
+        res.status(201);
+        res.json(user);
     }
     catch (error) {
         throw error;
@@ -113,19 +140,25 @@ const getUserProfile = (0, express_async_handler_1.default)((req, res) => __awai
             where: {
                 id: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
             },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                level: true,
+                subLevel: true,
+                isAdmin: true,
+                role: true,
+                status: true,
+                createdAt: true,
+            },
         });
         if (!user) {
             res.status(404);
             throw new Error('User not found');
         }
         res.status(200);
-        res.json({
-            _id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            isAdmin: user.isAdmin,
-        });
+        res.json(user);
     }
     catch (error) {
         throw error;
@@ -136,47 +169,61 @@ exports.getUserProfile = getUserProfile;
 // @Route PUT /api/users/:id
 // @privacy Private Admin
 const updateUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const validateData = validators_1.updateUserSchema.parse(req.body);
-    const { firstName, lastName, email, password, level, subLevel, isAdmin } = validateData;
-    console.log('Raw isAdmin:', req.body.isAdmin);
-    console.log('Parsed isAdmin:', validateData.isAdmin);
-    const user = yield prisma_1.prisma.users.findFirst({
-        where: { id: req.params.id },
-    });
-    if (!user) {
-        res.status(404);
-        throw new Error('User not found');
-    }
-    // Update fields conditionally
-    if (password) {
-        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-        yield prisma_1.prisma.users.update({
+    try {
+        const validateData = usersValidators_1.updateUserSchema.parse(req.body);
+        const { userId, firstName, lastName, email, password, level, role, status, subLevel, isAdmin, } = validateData;
+        const user = yield prisma_1.prisma.users.findFirst({
+            where: { id: userId },
+        });
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+        // Update fields conditionally
+        if (password) {
+            const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+            yield prisma_1.prisma.users.update({
+                where: { id: user.id },
+                data: {
+                    password: hashedPassword,
+                },
+            });
+        }
+        const updateUser = yield prisma_1.prisma.users.update({
             where: { id: user.id },
             data: {
-                password: hashedPassword,
+                firstName: firstName !== null && firstName !== void 0 ? firstName : user.firstName,
+                lastName: lastName !== null && lastName !== void 0 ? lastName : user.lastName,
+                email: email !== null && email !== void 0 ? email : user.email,
+                level: level !== null && level !== void 0 ? level : user.level,
+                role: role !== null && role !== void 0 ? role : user.role,
+                status: status !== null && status !== void 0 ? status : user.status,
+                subLevel: subLevel !== null && subLevel !== void 0 ? subLevel : user.subLevel,
+                isAdmin: isAdmin !== null && isAdmin !== void 0 ? isAdmin : user.isAdmin,
             },
         });
+        const updatedUser = yield prisma_1.prisma.users.findFirst({
+            where: {
+                id: updateUser.id,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                level: true,
+                subLevel: true,
+                isAdmin: true,
+                role: true,
+                status: true,
+                createdAt: true,
+            },
+        });
+        res.status(200).json(updatedUser);
     }
-    const updatedUser = yield prisma_1.prisma.users.update({
-        where: { id: user.id },
-        data: {
-            firstName: firstName !== null && firstName !== void 0 ? firstName : user.firstName,
-            lastName: lastName !== null && lastName !== void 0 ? lastName : user.lastName,
-            email: email !== null && email !== void 0 ? email : user.email,
-            level: level !== null && level !== void 0 ? level : user.level,
-            subLevel: subLevel !== null && subLevel !== void 0 ? subLevel : user.subLevel,
-            isAdmin: isAdmin !== null && isAdmin !== void 0 ? isAdmin : user.isAdmin,
-        },
-    });
-    res.status(200).json({
-        id: updatedUser.id,
-        email: updatedUser.email,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        level: updatedUser.level,
-        subLevel: updatedUser.subLevel,
-        isAdmin: updatedUser.isAdmin,
-    });
+    catch (error) {
+        throw error;
+    }
 }));
 exports.updateUser = updateUser;
 // @description This is to get all users
@@ -193,6 +240,9 @@ const getUsers = (0, express_async_handler_1.default)((req, res) => __awaiter(vo
                 level: true,
                 subLevel: true,
                 isAdmin: true,
+                role: true,
+                status: true,
+                createdAt: true,
             },
         });
         res.json(users);
@@ -216,6 +266,9 @@ const getUserById = (0, express_async_handler_1.default)((req, res) => __awaiter
                 level: true,
                 subLevel: true,
                 isAdmin: true,
+                role: true,
+                status: true,
+                createdAt: true,
             },
             where: {
                 id: req.params.id,
@@ -269,7 +322,7 @@ exports.deleteUser = deleteUser;
 // @privacy Private Admin
 const sendMail = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const validateData = validators_1.sendSingleMailSchema.parse(req.body);
+        const validateData = usersValidators_1.sendSingleMailSchema.parse(req.body);
         const { email, subject, text } = validateData;
         if (!req.user.isAdmin) {
             res.status(401);
@@ -288,7 +341,7 @@ exports.sendMail = sendMail;
 // @route POST api/users/forget-password
 // @privacy Public
 const forgetPassword = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const validateData = validators_1.forgetPasswordSchema.parse(req.body);
+    const validateData = usersValidators_1.forgetPasswordSchema.parse(req.body);
     const { email } = validateData;
     try {
         if (!email) {
@@ -340,39 +393,44 @@ exports.forgetPassword = forgetPassword;
 // @route PUT api/users/reset-password
 // @privacy Public
 const resetPassword = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { token } = req.query;
-    if (!token || typeof token !== 'string') {
-        res.status(400).json({ message: 'No token provided' });
-        return;
-    }
-    const { password } = validators_1.resetPasswordSchema.parse(req.body);
-    const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
-    const user = yield prisma_1.prisma.users.findFirst({
-        where: {
-            resetPasswordToken: hashedToken,
-            resetPasswordExpires: {
-                gt: new Date(),
+    try {
+        const { token } = req.query;
+        if (!token || typeof token !== 'string') {
+            res.status(400).json({ message: 'No token provided' });
+            return;
+        }
+        const { password } = usersValidators_1.resetPasswordSchema.parse(req.body);
+        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
+        const user = yield prisma_1.prisma.users.findFirst({
+            where: {
+                resetPasswordToken: hashedToken,
+                resetPasswordExpires: {
+                    gt: new Date(),
+                },
             },
-        },
-    });
-    if (!user) {
-        res.status(400).json({ message: 'Invalid or expired reset token' });
-        return;
+        });
+        if (!user) {
+            res.status(400).json({ message: 'Invalid or expired reset token' });
+            return;
+        }
+        const hashedPassword = yield bcrypt_1.default.hash(password, 12);
+        yield prisma_1.prisma.users.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                resetPasswordToken: null,
+                resetPasswordExpires: null,
+            },
+        });
+        yield (0, emailService_1.sendSingleMail)({
+            email: user.email,
+            subject: `Password Reset Successful`,
+            text: `You have successfully reset your password. </br> NOTE: If you did not initiate this process, please change your password or contact the admin immediately.`,
+        });
+        res.status(200).json({ message: 'Password has been reset successfully' });
     }
-    const hashedPassword = yield bcrypt_1.default.hash(password, 12);
-    yield prisma_1.prisma.users.update({
-        where: { id: user.id },
-        data: {
-            password: hashedPassword,
-            resetPasswordToken: null,
-            resetPasswordExpires: null,
-        },
-    });
-    yield (0, emailService_1.sendSingleMail)({
-        email: user.email,
-        subject: `Password Reset Successful`,
-        text: `You have successfully reset your password. </br> NOTE: If you did not initiate this process, please change your password or contact the admin immediately.`,
-    });
-    res.status(200).json({ message: 'Password has been reset successfully' });
+    catch (error) {
+        throw error;
+    }
 }));
 exports.resetPassword = resetPassword;

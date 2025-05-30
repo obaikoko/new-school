@@ -17,7 +17,7 @@ export default function NotFound() {
           </div>
           <h1 className='text-2xl font-bold text-foreground'>Page Not Found</h1>
           <p className='text-sm text-muted-foreground'>
-            Sorry, the page you are looking for doesn't exist or has been moved.
+            Sorry, the page you are looking for does not exist or has been moved.
           </p>
           <Button
             onClick={() => router.back()}

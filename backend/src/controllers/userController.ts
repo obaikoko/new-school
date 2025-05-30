@@ -6,7 +6,7 @@ import {
   resetPasswordSchema,
   sendSingleMailSchema,
   updateUserSchema,
-} from '../validators';
+} from '../validators/usersValidators';
 import { prisma } from '../config/db/prisma';
 import bcrypt from 'bcrypt';
 import generateToken from '../utils/generateToken';
@@ -55,6 +55,7 @@ const authUser = asyncHandler(
           isAdmin: true,
           role: true,
           status: true,
+          createdAt: true,
         },
       });
 
@@ -124,6 +125,7 @@ const registerUser = asyncHandler(
           isAdmin: true,
           role: true,
           status: true,
+          createdAt: true,
         },
       });
 
@@ -145,6 +147,18 @@ const getUserProfile = asyncHandler(
         where: {
           id: req.user?.id,
         },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          level: true,
+          subLevel: true,
+          isAdmin: true,
+          role: true,
+          status: true,
+          createdAt: true,
+        },
       });
 
       if (!user) {
@@ -152,13 +166,7 @@ const getUserProfile = asyncHandler(
         throw new Error('User not found');
       }
       res.status(200);
-      res.json({
-        _id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      });
+      res.json(user);
     } catch (error) {
       throw error;
     }
@@ -170,63 +178,75 @@ const getUserProfile = asyncHandler(
 // @privacy Private Admin
 const updateUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const validateData = updateUserSchema.parse(req.body);
-    const {
-      userId,
-      firstName,
-      lastName,
-      email,
-      password,
-      level,
-      role,
-      status,
-      subLevel,
-      isAdmin,
-    } = validateData;
+    try {
+      const validateData = updateUserSchema.parse(req.body);
+      const {
+        userId,
+        firstName,
+        lastName,
+        email,
+        password,
+        level,
+        role,
+        status,
+        subLevel,
+        isAdmin,
+      } = validateData;
 
-    const user = await prisma.users.findFirst({
-      where: { id: userId },
-    });
-    if (!user) {
-      res.status(404);
-      throw new Error('User not found');
-    }
+      const user = await prisma.users.findFirst({
+        where: { id: userId },
+      });
+      if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+      }
 
-    // Update fields conditionally
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await prisma.users.update({
+      // Update fields conditionally
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await prisma.users.update({
+          where: { id: user.id },
+          data: {
+            password: hashedPassword,
+          },
+        });
+      }
+
+      const updateUser = await prisma.users.update({
         where: { id: user.id },
         data: {
-          password: hashedPassword,
+          firstName: firstName ?? user.firstName,
+          lastName: lastName ?? user.lastName,
+          email: email ?? user.email,
+          level: level ?? user.level,
+          role: role ?? user.role,
+          status: status ?? user.status,
+          subLevel: subLevel ?? user.subLevel,
+          isAdmin: isAdmin ?? user.isAdmin,
         },
       });
+      const updatedUser = await prisma.users.findFirst({
+        where: {
+          id: updateUser.id,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          level: true,
+          subLevel: true,
+          isAdmin: true,
+          role: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      throw error;
     }
-
-    const updatedUser = await prisma.users.update({
-      where: { id: user.id },
-
-      data: {
-        firstName: firstName ?? user.firstName,
-        lastName: lastName ?? user.lastName,
-        email: email ?? user.email,
-        level: level ?? user.level,
-        role: role ?? user.role,
-        status: status ?? user.status,
-        subLevel: subLevel ?? user.subLevel,
-        isAdmin: isAdmin ?? user.isAdmin,
-      },
-    });
-
-    res.status(200).json({
-      id: updatedUser.id,
-      email: updatedUser.email,
-      firstName: updatedUser.firstName,
-      lastName: updatedUser.lastName,
-      level: updatedUser.level,
-      subLevel: updatedUser.subLevel,
-      isAdmin: updatedUser.isAdmin,
-    });
   }
 );
 
@@ -247,6 +267,7 @@ const getUsers = asyncHandler(
           isAdmin: true,
           role: true,
           status: true,
+          createdAt: true,
         },
       });
       res.json(users);
@@ -271,6 +292,9 @@ const getUserById = asyncHandler(
           level: true,
           subLevel: true,
           isAdmin: true,
+          role: true,
+          status: true,
+          createdAt: true,
         },
         where: {
           id: req.params.id,
@@ -409,6 +433,7 @@ const forgetPassword = asyncHandler(
 // @privacy Public
 const resetPassword = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
+   try {
     const { token } = req.query;
     if (!token || typeof token !== 'string') {
       res.status(400).json({ message: 'No token provided' });
@@ -451,6 +476,9 @@ const resetPassword = asyncHandler(
     });
 
     res.status(200).json({ message: 'Password has been reset successfully' });
+   } catch (error) {
+    throw error
+   }
   }
 );
 

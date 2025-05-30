@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { useStudentLoginMutation } from '@/src/features/auth/studentsApiSlice';import { setCredentials } from '@/src/features/auth/authSlice';
+import { useStudentLoginMutation } from '@/src/features/auth/studentsApiSlice';
+import { setCredentials } from '@/src/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
 import {
-  authStudentResponseSchema,
+  studentSchema,
   authStudentSchema,
 } from '@/validators/studentValidation';
 import { showZodErrors } from '@/lib/utils';
@@ -34,7 +35,7 @@ const StudentCredentialsSignInForm = () => {
 
   const onSubmit = async (data: AuthStudentForm) => {
     try {
-      const result = authStudentResponseSchema.safeParse(await login(data).unwrap());
+      const result = studentSchema.safeParse(await login(data).unwrap());
 
       if (!result.success) {
         toast.error('Invalid response from server');
@@ -67,7 +68,9 @@ const StudentCredentialsSignInForm = () => {
             {...register('studentId')}
           />
           {errors.studentId && (
-            <p className='text-red-500 text-sm mt-1'>{errors.studentId.message}</p>
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.studentId.message}
+            </p>
           )}
 
           <div className='mb-6 w-full relative mt-4'>

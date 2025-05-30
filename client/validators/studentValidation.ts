@@ -22,7 +22,7 @@ export const authStudentSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-export const authStudentResponseSchema = z.object({
+export const studentSchema = z.object({
   id: z.string(),
   studentId: z.string(),
   firstName: z.string(),

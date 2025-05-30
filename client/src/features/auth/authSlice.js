@@ -19,7 +19,7 @@ const authSlice = createSlice({
       state.user = action.payload;
       sessionStorage.setItem('User', JSON.stringify(action.payload));
     },
-    logout: (state, action) => {
+    logout: (state) => {
       state.user = null;
       sessionStorage.removeItem('User');
     },

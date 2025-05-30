@@ -12,8 +12,8 @@ const port = process.env.PORT || 5000;
 const app = express();
 
 const corsOptions = {
-//   origin: ['https://www.bendonaldschools.com', 'https://bendonaldschools.com'],
-  origin: 'http://localhost:3000',
+  origin: 'https://new-school-client.vercel.app',
+  // origin: 'http://localhost:3000',
   credentials: true,
 };
 

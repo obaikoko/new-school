@@ -12,7 +12,7 @@ const SignOutButton = () => {
 
   const handleLogout = async () => {
     try {
-      await logoutApi().unwrap();
+      await logoutApi(undefined).unwrap();
       dispatch(logout());
       router.push('/sign-in');
     } catch (error) {
