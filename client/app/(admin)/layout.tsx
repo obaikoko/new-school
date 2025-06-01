@@ -37,7 +37,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className='flex h-screen'>
+    <div className='flex min-h-screen flex-col md:flex-row'>
       <SideNav isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className='flex-1 flex flex-col'>

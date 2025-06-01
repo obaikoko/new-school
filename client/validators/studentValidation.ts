@@ -44,3 +44,8 @@ export const studentSchema = z.object({
   sponsorRelationship: z.string().nullable(),
   imageUrl: z.string().nullable(),
 });
+
+export const searchSchema = z.object({
+  name: z.string().optional().nullable(),
+  level: z.string(),
+});

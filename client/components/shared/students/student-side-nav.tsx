@@ -2,48 +2,92 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Home, BookOpen, FileText, User } from 'lucide-react';
 import ModeToggle from '../header/mode-toggle';
+import SignOutButton from '../sign-out';
+
+import { Home, BookOpen, FileText, User, X } from 'lucide-react';
 
 const navItems = [
-  { href: '/student/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/student/courses', label: 'Courses', icon: BookOpen },
-  { href: '/student/results', label: 'Results', icon: FileText },
-  { href: '/student/profile', label: 'Profile', icon: User },
+  {
+    id: 'dashboard',
+    href: '/student/dashboard',
+    label: 'Dashboard',
+    icon: Home,
+  },
+  { id: 'courses', href: '/student/courses', label: 'Courses', icon: BookOpen },
+  { id: 'results', href: '/student/results', label: 'Results', icon: FileText },
+  { id: 'profile', href: '/student/profile', label: 'Profile', icon: User },
 ];
 
-const StudentSideNav = () => {
+interface SideNavProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const StudentSideNav = ({ isOpen, onClose }: SideNavProps) => {
   const pathname = usePathname();
 
   return (
-    <aside className='fixed top-0 left-0 z-50 hidden md:flex flex-col w-64 h-screen border-r bg-white dark:bg-gray-900 px-4 py-6'>
-      <div className='mb-6'>
-        <h2 className='text-xl font-bold'>Student Panel</h2>
+    <>
+      {/* Mobile Sidebar Overlay */}
+      <div
+        className={cn(
+          'fixed inset-0 bg-black/30 z-40 transition-opacity md:hidden',
+          isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+        )}
+        onClick={onClose}
+      />
+
+      <aside
+        className={cn(
+          'fixed top-0 left-0 z-50 flex flex-col w-64 h-full border-r bg-white dark:bg-gray-900 px-4 py-6 transition-transform transform',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
+          'md:translate-x-0 md:static md:flex'
+        )}
+      >
+        <div className='mb-8 flex justify-between items-center'>
+          <h2 className='text-xl font-bold tracking-tight'>Student Panel</h2>
+          <div className='md:hidden'>
+            <Button variant='ghost' size='icon' onClick={onClose}>
+              <X className='w-5 h-5' />
+            </Button>
+          </div>
+        </div>
+
         <ModeToggle />
-      </div>
-      <nav className='space-y-2'>
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium',
-                isActive
-                  ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              )}
-            >
-              <Icon className='w-5 h-5' />
-              {item.label}
+
+        <nav
+          className='flex flex-col gap-2 flex-1 mt-4'
+          aria-label='Student sidebar navigation'
+        >
+          {navItems.map(({ id, label, href, icon: Icon }) => (
+            <Link key={id} href={href}>
+              <Button
+                asChild
+                variant='ghost'
+                className={cn(
+                  'w-full justify-start gap-3',
+                  pathname === href
+                    ? 'bg-muted hover:bg-muted font-semibold border-l-4 border-primary pl-2'
+                    : 'pl-3'
+                )}
+              >
+                <span className='flex items-center gap-3'>
+                  <Icon className='h-5 w-5' />
+                  {label}
+                </span>
+              </Button>
             </Link>
-          );
-        })}
-      </nav>
-    </aside>
+          ))}
+        </nav>
+
+        <div className='mt-auto'>
+          <SignOutButton />
+        </div>
+      </aside>
+    </>
   );
 };
 

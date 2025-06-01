@@ -8,7 +8,6 @@ import {
   getStudent,
   getStudentsRegisteredByUser,
   registerStudent,
-  searchStudents,
   updateStudent,
   graduateStudent,
 } from '../controllers/studentController';
@@ -19,7 +18,6 @@ import express from 'express';
 const router = express.Router();
 router.route('/').get(protect, getAllStudents);
 router.route('/export').get(protect, admin, exportStudentsCSV);
-router.route('/search').get(protect, searchStudents);
 router.route('/pdf').get(protect, exportStudentsPDF);
 router
   .route('/search/registered-user')

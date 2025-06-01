@@ -76,6 +76,7 @@ const UserDetails = ({ userId }: UserDetailsProps) => {
               <strong>Registered On:</strong> {formatDateTime(user.createdAt)}
             </p>
           </div>
+          
         </CardContent>
       </Card>
     </div>

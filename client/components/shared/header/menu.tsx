@@ -8,7 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import UserButton from './user-button';
+import SignInButton from './sign-in-button';
 const Menu = () => {
   return (
     <div className='flex items-center'>
@@ -27,7 +27,7 @@ const Menu = () => {
         <Button asChild variant='ghost'>
           <Link href='/events'>Events</Link>
         </Button>
-        <UserButton />
+        <SignInButton />
       </nav>
 
       {/* Mobile nav */}
@@ -51,7 +51,7 @@ const Menu = () => {
             <Button asChild variant='ghost'>
               <Link href='/events'>Events</Link>
             </Button>
-            <UserButton />
+            <SignInButton />
           </SheetContent>
         </Sheet>
       </nav>

@@ -1,4 +1,6 @@
 'use client';
+import NaijaStates from 'naija-state-local-government';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -19,7 +21,9 @@ import {
   studentSchema,
   registerStudentSchema,
 } from '@/validators/studentValidation';
-import { useRegisterStudentMutation } from '@/src/features/students/studentApiSlice'; // if using RTK
+import { useRegisterStudentMutation } from '@/src/features/students/studentApiSlice';
+import { useState } from 'react';
+import Spinner from '../spinner';
 
 const RegisterStudentsForm = () => {
   const {
@@ -32,6 +36,10 @@ const RegisterStudentsForm = () => {
   });
 
   const [registerStudent, { isLoading }] = useRegisterStudentMutation();
+  const [selectedState, setSelectedState] = useState('')
+  const states: string[] = NaijaStates.states();
+  const getLgas = (state: string): string[] => NaijaStates.lgas(state).lgas;
+  
 
   const onSubmit = async (data: RegisterStudentForm) => {
     try {
@@ -99,18 +107,49 @@ const RegisterStudentsForm = () => {
         </div>
         <div>
           <Label htmlFor='level'>Level</Label>
-          <Input id='level' {...register('level')} placeholder='e.g., JSS' />
+          <Select onValueChange={(value) => setValue('level', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder='Select level' />
+            </SelectTrigger>
+            <SelectContent>
+              {[
+                'Grade 1',
+                'Grade 2',
+                'Grade 3',
+                'Grade 4',
+                'Grade 5',
+                'JSS 1',
+                'JSS 2',
+                'JSS 3',
+                'SSS 1',
+                'SSS 2',
+                'SSS 3',
+              ].map((level) => (
+                <SelectItem key={level} value={level}>
+                  {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {errors.level && (
             <p className='text-sm text-red-500'>{errors.level.message}</p>
           )}
         </div>
         <div>
           <Label htmlFor='subLevel'>Sub-Level</Label>
-          <Input
-            id='subLevel'
-            {...register('subLevel')}
-            placeholder='e.g., 2'
-          />
+          <Select onValueChange={(value) => setValue('subLevel', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder='Select sub-level' />
+            </SelectTrigger>
+            <SelectContent>
+              {['A', 'B', 'C', 'D', 'E'].map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.subLevel && (
             <p className='text-sm text-red-500'>{errors.subLevel.message}</p>
           )}
@@ -119,6 +158,7 @@ const RegisterStudentsForm = () => {
           <Label htmlFor='yearAdmitted'>Year Admitted</Label>
           <Input
             id='yearAdmitted'
+            type='date'
             {...register('yearAdmitted')}
             placeholder='e.g., 2023'
           />
@@ -134,7 +174,23 @@ const RegisterStudentsForm = () => {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div>
           <Label htmlFor='stateOfOrigin'>State of Origin</Label>
-          <Input id='stateOfOrigin' {...register('stateOfOrigin')} />
+          <Select
+            onValueChange={(value) => {
+              setValue('stateOfOrigin', value);
+              setSelectedState(value);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder='Select state' />
+            </SelectTrigger>
+            <SelectContent>
+              {states.map((state: string) => (
+                <SelectItem key={state} value={state}>
+                  {state}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.stateOfOrigin && (
             <p className='text-sm text-red-500'>
               {errors.stateOfOrigin.message}
@@ -143,7 +199,20 @@ const RegisterStudentsForm = () => {
         </div>
         <div>
           <Label htmlFor='localGvt'>Local Govt</Label>
-          <Input id='localGvt' {...register('localGvt')} />
+          <Select onValueChange={(value) => setValue('localGvt', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder='Select LGA' />
+            </SelectTrigger>
+            <SelectContent>
+              {(selectedState ? getLgas(selectedState) : []).map(
+                (lga: string) => (
+                  <SelectItem key={lga} value={lga}>
+                    {lga}
+                  </SelectItem>
+                )
+              )}
+            </SelectContent>
+          </Select>
           {errors.localGvt && (
             <p className='text-sm text-red-500'>{errors.localGvt.message}</p>
           )}
@@ -168,10 +237,22 @@ const RegisterStudentsForm = () => {
         </div>
         <div>
           <Label htmlFor='sponsorRelationship'>Relationship</Label>
-          <Input
-            id='sponsorRelationship'
-            {...register('sponsorRelationship')}
-          />
+          <Select
+            onValueChange={(value) => setValue('sponsorRelationship', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder='Select relationship' />
+            </SelectTrigger>
+            <SelectContent>
+              {['Mother', 'Father', 'Uncle', 'Aunt', 'Guardian', 'Other'].map(
+                (r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                )
+              )}
+            </SelectContent>
+          </Select>
           {errors.sponsorRelationship && (
             <p className='text-sm text-red-500'>
               {errors.sponsorRelationship.message}
@@ -191,12 +272,15 @@ const RegisterStudentsForm = () => {
           <Label htmlFor='sponsorEmail'>Email</Label>
           <Input id='sponsorEmail' {...register('sponsorEmail')} />
           {errors.sponsorEmail && (
-            <p className='text-sm text-red-500'>{errors.sponsorEmail.message}</p>
+            <p className='text-sm text-red-500'>
+              {errors.sponsorEmail.message}
+            </p>
           )}
         </div>
       </div>
 
       <Button type='submit' className='w-full' disabled={isLoading}>
+        {isLoading && <Spinner />}
         {isLoading ? 'Processing...' : 'Register Student'}
       </Button>
     </form>

@@ -7,7 +7,6 @@ const UserProfilePage = async (props: { params: Promise<{ id: string }> }) => {
   return (
     <>
       <UserDetails userId={id} />
-      {/* <SendEmailForm/> */}
     </>
   );
 };
