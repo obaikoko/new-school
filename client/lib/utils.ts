@@ -29,3 +29,35 @@ export function showZodErrors(error: unknown) {
     toast.error('An unknown error occurred');
   }
 }
+
+export const levels: string[] = [
+  'All',
+  'Creche',
+  'Lower Reception',
+  'Upper Reception',
+  'Nursery 1',
+  'Nursery 2',
+  'Grade 1',
+  'Grade 2',
+  'Grade 3',
+  'Grade 4',
+  'Grade 5',
+  'JSS 1',
+  'JSS 2',
+  'JSS 3',
+  'SSS 1',
+  'SSS 2',
+  'SSS 3',
+  'GRADUATED',
+];
+
+export const subLevel: string[] = ['A', 'B', 'C', 'D', 'E'];
+
+export const sessions: string[] = [
+  '2024/2025',
+  '2025/2026',
+  '2026/2027',
+  '2027/2028',
+  '2028/2029',
+  '2029/2030',
+];

@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import { showZodErrors } from '@/lib/utils';
 const DeleteStudentButton = ({ studentId }: { studentId: string }) => {
   const router = useRouter();
-  const { refetch } = useGetStudentsQuery({});
+  const { refetch } = useGetStudentsQuery(1);
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const handleDelete = async () => {
@@ -35,7 +35,7 @@ const DeleteStudentButton = ({ studentId }: { studentId: string }) => {
     <>
       <Button
         variant='outline'
-        className='text-destructive'
+        className='text-destructive cursor-pointer'
         onClick={() => setDeleteDialogOpen(true)}
       >
         Delete
@@ -47,11 +47,16 @@ const DeleteStudentButton = ({ studentId }: { studentId: string }) => {
           </DialogHeader>
           <p>Are you sure you want to delete this student?</p>
           <DialogFooter>
-            <Button variant='ghost' onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant='ghost'
+              className='cursor-pointer'
+              onClick={() => setDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
               variant='destructive'
+              className='cursor-pointer'
               onClick={handleDelete}
               disabled={isDeleting}
             >

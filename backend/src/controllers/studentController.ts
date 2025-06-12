@@ -28,7 +28,7 @@ const authStudent = asyncHandler(
 
       const { studentId, password } = validatedData;
 
-      const student = await prisma.students.findFirst({
+      const student = await prisma.student.findFirst({
         where: {
           studentId,
         },
@@ -51,7 +51,7 @@ const authStudent = asyncHandler(
         throw new Error('Invalid Email or Password');
       }
 
-      const authenticatedStudent = await prisma.students.findFirst({
+      const authenticatedStudent = await prisma.student.findFirst({
         where: {
           studentId,
         },
@@ -116,7 +116,7 @@ const registerStudent = asyncHandler(
       } = validatedData;
 
       // Check if student already exists
-      const existingStudent = await prisma.students.findFirst({
+      const existingStudent = await prisma.student.findFirst({
         where: {
           firstName: { equals: firstName, mode: 'insensitive' },
           lastName: { equals: lastName, mode: 'insensitive' },
@@ -134,11 +134,35 @@ const registerStudent = asyncHandler(
       const currentYear = new Date().getFullYear();
       const classCode = classCodeMapping[level];
 
-      const count = await prisma.students.count({
-        where: { level },
+      // Step 1: Try to find the tracker
+      let tracker = await prisma.studentIdTracker.findFirst({
+        where: {
+          year: currentYear,
+          level,
+        },
       });
 
-      const studentId = `BDIS/${currentYear}/${classCode}/${(count + 1)
+      // Step 2: Create or increment
+      if (!tracker) {
+        tracker = await prisma.studentIdTracker.create({
+          data: {
+            year: currentYear,
+            level,
+            lastNumber: 1,
+          },
+        });
+      } else {
+        tracker = await prisma.studentIdTracker.update({
+          where: {
+            id: tracker.id,
+          },
+          data: {
+            lastNumber: tracker.lastNumber + 1,
+          },
+        });
+      }
+
+      const studentId = `BDIS/${currentYear}/${classCode}/${tracker.lastNumber
         .toString()
         .padStart(3, '0')}`;
 
@@ -147,9 +171,9 @@ const registerStudent = asyncHandler(
         10
       );
 
-      const student = await prisma.students.create({
+      const student = await prisma.student.create({
         data: {
-          userId: req.user?.id,
+          userId: req.user!.id,
           firstName,
           lastName,
           otherName,
@@ -202,82 +226,81 @@ const registerStudent = asyncHandler(
 
 // @route   GET /api/students
 // @access  Private (Admin or Owner)
-const getAllStudents = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user as {
-    isAdmin: boolean;
-    level?: string;
-    subLevel?: string;
-  };
-  if (!user) {
-    res.status(401);
-    throw new Error('Unauthorized User');
-  }
+const getAllStudents = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const user = req.user;
+    if (!user) {
+      res.status(401);
+      throw new Error('Unauthorized User');
+    }
 
-  const level = req.query.level as string | undefined;
-  const keyword = req.query.keyword as string | undefined;
-  const page = parseInt(req.query.pageNumber as string) || 1;
-  const pageSize = 30;
+    const level = req.query.level as string | undefined;
+    const keyword = req.query.keyword as string | undefined;
+    const page = parseInt(req.query.pageNumber as string) || 1;
+    const pageSize = 30;
 
-  // Prisma filter
-  const whereClause: any = {
-    ...(keyword && {
-      OR: [
-        { firstName: { contains: keyword, mode: 'insensitive' } },
-        { lastName: { contains: keyword, mode: 'insensitive' } },
-        { otherName: { contains: keyword, mode: 'insensitive' } },
-      ],
-    }),
-    ...(level &&
-      level !== 'All' && {
-        level: { contains: level, mode: 'insensitive' },
+    // Prisma filter
+    const whereClause: any = {
+      ...(keyword && {
+        OR: [
+          { firstName: { contains: keyword, mode: 'insensitive' } },
+          { lastName: { contains: keyword, mode: 'insensitive' } },
+          { otherName: { contains: keyword, mode: 'insensitive' } },
+        ],
       }),
-  };
+      ...(level &&
+        level !== 'All' && {
+          level: { contains: level, mode: 'insensitive' },
+        }),
+    };
 
-  // If not admin, filter by their level/subLevel
-  if (!user.isAdmin) {
-    whereClause.level = user.level;
-    whereClause.subLevel = user.subLevel;
+    // If not admin, filter by their level/subLevel
+    if (!user.isAdmin) {
+      whereClause.level = user.level;
+      whereClause.subLevel = user.subLevel;
+    }
+
+    const [students, totalCount] = await Promise.all([
+      prisma.student.findMany({
+        select: {
+          id: true,
+          studentId: true,
+          firstName: true,
+          lastName: true,
+          otherName: true,
+          dateOfBirth: true,
+          level: true,
+          subLevel: true,
+          isStudent: true,
+          isPaid: true,
+          gender: true,
+          yearAdmitted: true,
+          stateOfOrigin: true,
+          localGvt: true,
+          homeTown: true,
+          sponsorEmail: true,
+          sponsorName: true,
+          sponsorPhoneNumber: true,
+          sponsorRelationship: true,
+          imageUrl: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        skip: pageSize * (page - 1),
+        take: pageSize,
+      }),
+      prisma.student.count({ where: whereClause }),
+    ]);
+
+    res.status(200).json({
+      students,
+      page,
+      totalPages: Math.ceil(totalCount / pageSize),
+    });
   }
-
-  const [students, totalCount] = await Promise.all([
-    prisma.students.findMany({
-      select: {
-        id: true,
-        studentId: true,
-        firstName: true,
-        lastName: true,
-        otherName: true,
-        dateOfBirth: true,
-        level: true,
-        subLevel: true,
-        isStudent: true,
-        isPaid: true,
-        gender: true,
-        yearAdmitted: true,
-        stateOfOrigin: true,
-        localGvt: true,
-        homeTown: true,
-        sponsorEmail: true,
-        sponsorName: true,
-        sponsorPhoneNumber: true,
-        sponsorRelationship: true,
-        imageUrl: true,
-        createdAt: true,
-      },
-      where: whereClause,
-      orderBy: { createdAt: 'desc' },
-      skip: pageSize * (page - 1),
-      take: pageSize,
-    }),
-    prisma.students.count({ where: whereClause }),
-  ]);
-
-  res.status(200).json({
-    students,
-    page,
-    totalPages: Math.ceil(totalCount / pageSize),
-  });
-});
+);
 
 // GET /api/students/registered-by-me
 const getStudentsRegisteredByUser = asyncHandler(
@@ -292,13 +315,13 @@ const getStudentsRegisteredByUser = asyncHandler(
     const page = parseInt(req.query.pageNumber as string) || 1;
     const pageSize = 30;
 
-    const totalCount = await prisma.students.count({
+    const totalCount = await prisma.student.count({
       where: {
         userId: userId,
       },
     });
 
-    const students = await prisma.students.findMany({
+    const students = await prisma.student.findMany({
       select: {
         id: true,
         studentId: true,
@@ -347,7 +370,7 @@ const exportStudentsCSV = asyncHandler(
       throw new Error('Unauthorized');
     }
 
-    const students = await prisma.students.findMany({
+    const students = await prisma.student.findMany({
       select: {
         studentId: true,
         firstName: true,
@@ -392,7 +415,7 @@ const getStudent = asyncHandler(
       res.status(401);
       throw new Error('Unauthorized User');
     }
-    const student = await prisma.students.findFirst({
+    const student = await prisma.student.findFirst({
       select: {
         id: true,
         studentId: true,
@@ -459,7 +482,7 @@ const updateStudent = asyncHandler(
       throw new Error('Unauthorized User');
     }
 
-    const student = await prisma.students.findFirst({
+    const student = await prisma.student.findFirst({
       where: {
         id: req.params.id,
       },
@@ -470,7 +493,7 @@ const updateStudent = asyncHandler(
       throw new Error('No Student Found!');
     }
 
-    const updateStudent = await prisma.students.update({
+    const updateStudent = await prisma.student.update({
       select: {
         id: true,
         studentId: true,
@@ -531,7 +554,7 @@ const deleteStudent = asyncHandler(
         res.status(401);
         throw new Error('Unauthorized User');
       }
-      const student = await prisma.students.findUnique({
+      const student = await prisma.student.findUnique({
         where: {
           id: req.params.id,
         },
@@ -541,7 +564,7 @@ const deleteStudent = asyncHandler(
         res.status(404);
         throw new Error('Student Not Found!');
       }
-      const deleteStudent = await prisma.students.delete({
+      const deleteStudent = await prisma.student.delete({
         where: {
           id: student.id,
         },
@@ -563,7 +586,7 @@ const forgetPassword = asyncHandler(
     const { studentId } = validateData;
     try {
       // Find user by studentId
-      const student = await prisma.students.findFirst({
+      const student = await prisma.student.findFirst({
         where: {
           studentId,
         },
@@ -583,7 +606,7 @@ const forgetPassword = asyncHandler(
         .digest('hex');
 
       const newDate = new Date(Date.now() + 60 * 60 * 1000);
-      const updateStudent = await prisma.students.update({
+      const updateStudent = await prisma.student.update({
         where: { id: student.id },
         data: {
           resetPasswordToken: hashedToken,
@@ -592,7 +615,7 @@ const forgetPassword = asyncHandler(
       });
 
       // Create reset URL to send in email
-      const resetUrl = `${process.env.PUBLIC_DOMAIN}/reset-password?token=${resetToken}`;
+      const resetUrl = `${process.env.PUBLIC_DOMAIN}/students/reset-password?token=${resetToken}`;
 
       // Send the email
       sendSingleMail({
@@ -628,7 +651,7 @@ const resetPassword = asyncHandler(
         .update(token)
         .digest('hex');
 
-      const student = await prisma.students.findFirst({
+      const student = await prisma.student.findFirst({
         where: {
           resetPasswordToken: hashedToken,
           resetPasswordExpires: {
@@ -645,7 +668,7 @@ const resetPassword = asyncHandler(
 
       const hashedPassword = await bcrypt.hash(password, 12);
 
-      await prisma.students.update({
+      await prisma.student.update({
         where: { id: student.id },
         data: {
           password: hashedPassword,
@@ -668,7 +691,7 @@ const resetPassword = asyncHandler(
 );
 
 const exportStudentsPDF = asyncHandler(async (req: Request, res: Response) => {
-  const students = await prisma.students.findMany({
+  const students = await prisma.student.findMany({
     select: {
       studentId: true,
       firstName: true,
@@ -697,7 +720,7 @@ const exportStudentsPDF = asyncHandler(async (req: Request, res: Response) => {
 const graduateStudent = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     // Step 1: Fetch all students
-    const students = await prisma.students.findMany();
+    const students = await prisma.student.findMany();
 
     const unmappedLevels: string[] = [];
     let updatedCount = 0;
@@ -708,7 +731,7 @@ const graduateStudent = asyncHandler(
       const nextLevel = classProgression[currentLevel];
 
       if (nextLevel) {
-        await prisma.students.update({
+        await prisma.student.update({
           where: { id: student.id },
           data: { level: nextLevel },
         });

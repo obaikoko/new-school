@@ -13,7 +13,7 @@ exports.insertStudentSchema = zod_1.z.object({
     yearAdmitted: zod_1.z.coerce.date({ message: 'Invalid admission year' }),
     stateOfOrigin: zod_1.z.string().min(1, 'State of origin is required'),
     localGvt: zod_1.z.string().min(1, 'Local government is required'),
-    homeTown: zod_1.z.string().min(1, 'Hometown is required'),
+    homeTown: zod_1.z.string().min(1, 'Hometown is required').optional().nullable(),
     sponsorName: zod_1.z.string().optional().nullable(),
     sponsorRelationship: zod_1.z.string().optional().nullable(),
     sponsorPhoneNumber: zod_1.z.string().optional().nullable(),

@@ -1,8 +1,7 @@
-// app/admin/students/page.tsx
 'use client';
 
-// import { useState } from 'react';
 import { useGetStudentsQuery } from '@/src/features/students/studentApiSlice';
+import { useGetStudentsDataQuery } from '@/src/features/data/dataApiSlice';
 import StudentsSearch from '@/components/shared/students/student-search';
 import StudentsTable from '@/components/shared/students/students-table';
 import {
@@ -12,22 +11,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Student } from '@/schemas/studentSchema';
+import DownloadStudentDataButton from '@/components/shared/students/download-student-button';
+import GraduateStudentsButton from '@/components/shared/students/graduate-students-button';
+import Pagination from '@/components/shared/pagination';
+import { useState } from 'react';
 
 const StudentsPage = () => {
-  // const [search, setSearch] = useState('');
-  const { data, isLoading, isError } = useGetStudentsQuery({ page: 1 });
-
+  const [page, setPage] = useState<number>(1);
+  const { data, isLoading, isError } = useGetStudentsQuery(page);
+  const { data: studentsData } = useGetStudentsDataQuery({});
   const students = data?.students ?? [];
-  // const filteredStudents = students.filter((s: Student) =>
-  //   [s.firstName, s.lastName, s.id].some((field) =>
-  //     field.toLowerCase().includes(search.toLowerCase())
-  //   )
-  // );
-
-  const total = students.length;
-  const males = students.filter((s: Student) => s.gender === 'Male').length;
-  const females = students.filter((s: Student) => s.gender === 'Female').length;
+  const totalPages = data?.totalPages ?? 1;
 
   return (
     <div className='p-4 space-y-6'>
@@ -40,7 +34,7 @@ const StudentsPage = () => {
             <CardDescription>All registered students</CardDescription>
           </CardHeader>
           <CardContent className='text-3xl font-bold'>
-            {isLoading ? 'Loading...' : total}
+            {isLoading ? 'Loading...' : studentsData?.totalStudents}
           </CardContent>
         </Card>
 
@@ -50,7 +44,7 @@ const StudentsPage = () => {
             <CardDescription>Number of boys</CardDescription>
           </CardHeader>
           <CardContent className='text-3xl font-bold text-blue-600'>
-            {isLoading ? 'Loading...' : males}
+            {isLoading ? 'Loading...' : studentsData?.Male}
           </CardContent>
         </Card>
 
@@ -60,7 +54,7 @@ const StudentsPage = () => {
             <CardDescription>Number of girls</CardDescription>
           </CardHeader>
           <CardContent className='text-3xl font-bold text-pink-600'>
-            {isLoading ? 'Loading...' : females}
+            {isLoading ? 'Loading...' : studentsData?.Female}
           </CardContent>
         </Card>
       </div>
@@ -73,7 +67,26 @@ const StudentsPage = () => {
           isLoading={isLoading}
           isError={isError}
         />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={(newPage) => setPage(newPage)}
+        />
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Important Buttons</CardTitle>
+          <CardDescription className='text-destructive'>
+            Note that this buttons here are marked as important button.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='flex flex-col md:flex-row gap-3'>
+            <DownloadStudentDataButton />
+            <GraduateStudentsButton />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

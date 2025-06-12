@@ -26,8 +26,8 @@ const crypto_1 = __importDefault(require("crypto"));
 const authUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = usersValidators_1.authUserSchema.parse(req.body);
-        const user = yield prisma_1.prisma.users.findUnique({
-            where: { email },
+        const user = yield prisma_1.prisma.user.findUnique({
+            where: { email: email },
             select: {
                 id: true,
                 email: true,
@@ -45,7 +45,7 @@ const authUser = (0, express_async_handler_1.default)((req, res) => __awaiter(vo
             res.status(401);
             throw new Error('Invalid Email or Password');
         }
-        const authenticatedUser = yield prisma_1.prisma.users.findUnique({
+        const authenticatedUser = yield prisma_1.prisma.user.findUnique({
             where: { email },
             select: {
                 id: true,
@@ -90,7 +90,7 @@ const registerUser = (0, express_async_handler_1.default)((req, res) => __awaite
         const validateData = usersValidators_1.insertUserSchema.parse(req.body);
         const { firstName, lastName, email, password } = validateData;
         // check if user already exist
-        const userExit = yield prisma_1.prisma.users.findFirst({
+        const userExit = yield prisma_1.prisma.user.findFirst({
             where: {
                 email: email,
             },
@@ -102,7 +102,7 @@ const registerUser = (0, express_async_handler_1.default)((req, res) => __awaite
         // hash password before saving
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
         // register new user
-        const user = yield prisma_1.prisma.users.create({
+        const user = yield prisma_1.prisma.user.create({
             data: {
                 firstName,
                 lastName,
@@ -134,11 +134,10 @@ exports.registerUser = registerUser;
 // @Route GET /api/users
 // @privacy Private
 const getUserProfile = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
-        const user = yield prisma_1.prisma.users.findUnique({
+        const user = yield prisma_1.prisma.user.findUnique({
             where: {
-                id: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
+                id: req.user.id,
             },
             select: {
                 id: true,
@@ -172,7 +171,7 @@ const updateUser = (0, express_async_handler_1.default)((req, res) => __awaiter(
     try {
         const validateData = usersValidators_1.updateUserSchema.parse(req.body);
         const { userId, firstName, lastName, email, password, level, role, status, subLevel, isAdmin, } = validateData;
-        const user = yield prisma_1.prisma.users.findFirst({
+        const user = yield prisma_1.prisma.user.findFirst({
             where: { id: userId },
         });
         if (!user) {
@@ -182,14 +181,14 @@ const updateUser = (0, express_async_handler_1.default)((req, res) => __awaiter(
         // Update fields conditionally
         if (password) {
             const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-            yield prisma_1.prisma.users.update({
+            yield prisma_1.prisma.user.update({
                 where: { id: user.id },
                 data: {
                     password: hashedPassword,
                 },
             });
         }
-        const updateUser = yield prisma_1.prisma.users.update({
+        const updateUser = yield prisma_1.prisma.user.update({
             where: { id: user.id },
             data: {
                 firstName: firstName !== null && firstName !== void 0 ? firstName : user.firstName,
@@ -202,7 +201,7 @@ const updateUser = (0, express_async_handler_1.default)((req, res) => __awaiter(
                 isAdmin: isAdmin !== null && isAdmin !== void 0 ? isAdmin : user.isAdmin,
             },
         });
-        const updatedUser = yield prisma_1.prisma.users.findFirst({
+        const updatedUser = yield prisma_1.prisma.user.findFirst({
             where: {
                 id: updateUser.id,
             },
@@ -231,7 +230,7 @@ exports.updateUser = updateUser;
 // @privacy Private ADMIN
 const getUsers = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const users = yield prisma_1.prisma.users.findMany({
+        const users = yield prisma_1.prisma.user.findMany({
             select: {
                 id: true,
                 email: true,
@@ -257,7 +256,7 @@ exports.getUsers = getUsers;
 // @privacy Private ADMIN
 const getUserById = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const user = yield prisma_1.prisma.users.findFirst({
+        const user = yield prisma_1.prisma.user.findFirst({
             select: {
                 id: true,
                 email: true,
@@ -290,7 +289,7 @@ exports.getUserById = getUserById;
 // @privacy Private ADMIN
 const deleteUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const user = yield prisma_1.prisma.users.findFirst({
+        const user = yield prisma_1.prisma.user.findFirst({
             where: {
                 id: req.params.id,
             },
@@ -300,7 +299,7 @@ const deleteUser = (0, express_async_handler_1.default)((req, res) => __awaiter(
                 res.status(400);
                 throw new Error('Can not delete admin user');
             }
-            yield prisma_1.prisma.users.delete({
+            yield prisma_1.prisma.user.delete({
                 where: {
                     id: user.id,
                 },
@@ -324,7 +323,12 @@ const sendMail = (0, express_async_handler_1.default)((req, res) => __awaiter(vo
     try {
         const validateData = usersValidators_1.sendSingleMailSchema.parse(req.body);
         const { email, subject, text } = validateData;
-        if (!req.user.isAdmin) {
+        const user = req.user;
+        if (!user) {
+            res.status(401);
+            throw new Error('Unauthorized!');
+        }
+        if (!user.isAdmin) {
             res.status(401);
             throw new Error('Unauthorized Contact the adminitration');
         }
@@ -349,7 +353,7 @@ const forgetPassword = (0, express_async_handler_1.default)((req, res) => __awai
             throw new Error('Email Required');
         }
         // Find user by email
-        const user = yield prisma_1.prisma.users.findFirst({
+        const user = yield prisma_1.prisma.user.findFirst({
             where: {
                 email,
             },
@@ -366,7 +370,7 @@ const forgetPassword = (0, express_async_handler_1.default)((req, res) => __awai
             .update(resetToken)
             .digest('hex');
         const newDate = new Date(Date.now() + 60 * 60 * 1000);
-        const updateUser = yield prisma_1.prisma.users.update({
+        const updateUser = yield prisma_1.prisma.user.update({
             where: { email: email },
             data: {
                 resetPasswordToken: hashedToken,
@@ -400,8 +404,11 @@ const resetPassword = (0, express_async_handler_1.default)((req, res) => __await
             return;
         }
         const { password } = usersValidators_1.resetPasswordSchema.parse(req.body);
-        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
-        const user = yield prisma_1.prisma.users.findFirst({
+        const hashedToken = crypto_1.default
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+        const user = yield prisma_1.prisma.user.findFirst({
             where: {
                 resetPasswordToken: hashedToken,
                 resetPasswordExpires: {
@@ -414,7 +421,7 @@ const resetPassword = (0, express_async_handler_1.default)((req, res) => __await
             return;
         }
         const hashedPassword = yield bcrypt_1.default.hash(password, 12);
-        yield prisma_1.prisma.users.update({
+        yield prisma_1.prisma.user.update({
             where: { id: user.id },
             data: {
                 password: hashedPassword,

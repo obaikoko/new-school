@@ -52,7 +52,7 @@ const actions = [
     title: 'Set Resumption Information',
     description: 'Define tuition and other Information.',
     icon: BadgeDollarSign,
-    content: <ResumptionInfoForm/>,
+    content: <ResumptionInfoForm />,
   },
   {
     title: 'Manage Timetable',

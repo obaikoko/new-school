@@ -1,9 +1,10 @@
 import { STUDENTS_URL } from '../constants';
 import { apiSlice } from '../apiSlice';
+import { Student, Students } from '@/schemas/studentSchema';
 
 export const studentsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getStudentProfile: builder.query({
+    getStudentProfile: builder.query<Student, string>({
       query: () => ({
         url: `${STUDENTS_URL}/profile`,
         credentials: 'include',
@@ -11,7 +12,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
       providesTags: ['Students'],
       keepUnusedDataFor: 5,
     }),
-    getStudents: builder.query({
+    getStudents: builder.query<Students, number>({
       query: (page) => ({
         url: `${STUDENTS_URL}?pageNumber=${page}`,
         credentials: 'include',
@@ -27,7 +28,10 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
       providesTags: ['Students'],
       keepUnusedDataFor: 5,
     }),
-    searchStudents: builder.query({
+    searchStudents: builder.query<
+      Students,
+      { keyword: string | null; level: string | null; page: number | null }
+    >({
       query: ({ keyword, level, page }) => ({
         url: `${STUDENTS_URL}/?keyword=${keyword}&level=${level}&pageNumber=${page}`,
         credentials: 'include',
@@ -35,7 +39,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
       providesTags: ['Students'],
       keepUnusedDataFor: 5,
     }),
-    getStudent: builder.query({
+    getStudent: builder.query<Student, string>({
       query: (studentId) => ({
         url: `${STUDENTS_URL}/${studentId}`,
         credentials: 'include',
@@ -65,7 +69,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
         method: 'DELETE',
         credentials: 'include',
       }),
-      providesTags: ['Students'],
+      invalidatesTags: ['Students'],
     }),
     graduateStudents: builder.mutation({
       query: () => ({
@@ -73,7 +77,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
         method: 'PUT',
         credentials: 'include',
       }),
-      providesTags: ['Students'],
+      invalidatesTags: ['Students'],
     }),
     reserStudentsFee: builder.mutation({
       query: (data) => ({
@@ -82,7 +86,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
         body: data,
         credentials: 'include',
       }),
-      providesTags: ['Students'],
+      invalidatesTags: ['Students'],
     }),
 
     forgetStudentPassword: builder.mutation({
@@ -114,6 +118,5 @@ export const {
   useGraduateStudentsMutation,
   useForgetStudentPasswordMutation,
   useResetStudentPasswordMutation,
-  useStudentDataQuery,
   useReserStudentsFeeMutation,
 } = studentsApiSlice;

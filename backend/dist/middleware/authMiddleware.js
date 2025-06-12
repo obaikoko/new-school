@@ -25,10 +25,10 @@ const protect = (0, express_async_handler_1.default)((req, res, next) => __await
     }
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        const user = yield prisma_1.prisma.users.findUnique({
+        const user = yield prisma_1.prisma.user.findUnique({
             where: { id: decoded.userId },
         });
-        const student = yield prisma_1.prisma.students.findUnique({
+        const student = yield prisma_1.prisma.student.findUnique({
             where: { id: decoded.userId },
         });
         if (user)

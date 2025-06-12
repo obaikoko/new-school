@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.graduateStudent = exports.exportStudentsPDF = exports.exportStudentsCSV = exports.updateStudent = exports.resetPassword = exports.forgetPassword = exports.deleteStudent = exports.getStudent = exports.getStudentsRegisteredByUser = exports.searchStudents = exports.getAllStudents = exports.registerStudent = exports.authStudent = void 0;
+exports.graduateStudent = exports.exportStudentsPDF = exports.exportStudentsCSV = exports.updateStudent = exports.resetPassword = exports.forgetPassword = exports.deleteStudent = exports.getStudent = exports.getStudentsRegisteredByUser = exports.getAllStudents = exports.registerStudent = exports.authStudent = void 0;
 // src/controllers/studentController.ts
 const json2csv_1 = require("json2csv");
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
@@ -33,7 +33,7 @@ const authStudent = (0, express_async_handler_1.default)((req, res) => __awaiter
     try {
         const validatedData = studentValidators_1.authStudentSchema.parse(req.body);
         const { studentId, password } = validatedData;
-        const student = yield prisma_1.prisma.students.findFirst({
+        const student = yield prisma_1.prisma.student.findFirst({
             where: {
                 studentId,
             },
@@ -54,7 +54,7 @@ const authStudent = (0, express_async_handler_1.default)((req, res) => __awaiter
             res.status(401);
             throw new Error('Invalid Email or Password');
         }
-        const authenticatedStudent = yield prisma_1.prisma.students.findFirst({
+        const authenticatedStudent = yield prisma_1.prisma.student.findFirst({
             where: {
                 studentId,
             },
@@ -95,12 +95,11 @@ exports.authStudent = authStudent;
 // @route POST api/students/
 // @privacy Private ADMIN
 const registerStudent = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
         const validatedData = studentValidators_1.insertStudentSchema.parse(req.body);
         const { firstName, lastName, otherName, dateOfBirth, level, subLevel, gender, yearAdmitted, stateOfOrigin, localGvt, homeTown, sponsorName, sponsorRelationship, sponsorPhoneNumber, sponsorEmail, } = validatedData;
         // Check if student already exists
-        const existingStudent = yield prisma_1.prisma.students.findFirst({
+        const existingStudent = yield prisma_1.prisma.student.findFirst({
             where: {
                 firstName: { equals: firstName, mode: 'insensitive' },
                 lastName: { equals: lastName, mode: 'insensitive' },
@@ -114,16 +113,40 @@ const registerStudent = (0, express_async_handler_1.default)((req, res) => __awa
         // Class level to code mapping
         const currentYear = new Date().getFullYear();
         const classCode = classUtils_1.classCodeMapping[level];
-        const count = yield prisma_1.prisma.students.count({
-            where: { level },
+        // Step 1: Try to find the tracker
+        let tracker = yield prisma_1.prisma.studentIdTracker.findFirst({
+            where: {
+                year: currentYear,
+                level,
+            },
         });
-        const studentId = `BDIS/${currentYear}/${classCode}/${(count + 1)
+        // Step 2: Create or increment
+        if (!tracker) {
+            tracker = yield prisma_1.prisma.studentIdTracker.create({
+                data: {
+                    year: currentYear,
+                    level,
+                    lastNumber: 1,
+                },
+            });
+        }
+        else {
+            tracker = yield prisma_1.prisma.studentIdTracker.update({
+                where: {
+                    id: tracker.id,
+                },
+                data: {
+                    lastNumber: tracker.lastNumber + 1,
+                },
+            });
+        }
+        const studentId = `BDIS/${currentYear}/${classCode}/${tracker.lastNumber
             .toString()
             .padStart(3, '0')}`;
         const hashedPassword = yield bcrypt_1.default.hash(process.env.DEFAULTPASSWORD, 10);
-        const student = yield prisma_1.prisma.students.create({
+        const student = yield prisma_1.prisma.student.create({
             data: {
-                userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
+                userId: req.user.id,
                 firstName,
                 lastName,
                 otherName,
@@ -173,37 +196,67 @@ const registerStudent = (0, express_async_handler_1.default)((req, res) => __awa
     }
 }));
 exports.registerStudent = registerStudent;
-// GET /api/students/
-// Admin only
+// @route   GET /api/students
+// @access  Private (Admin or Owner)
 const getAllStudents = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.isAdmin)) {
-        res.status(403);
-        throw new Error('Access denied');
+    const user = req.user;
+    if (!user) {
+        res.status(401);
+        throw new Error('Unauthorized User');
     }
+    const level = req.query.level;
+    const keyword = req.query.keyword;
     const page = parseInt(req.query.pageNumber) || 1;
     const pageSize = 30;
-    const totalCount = yield prisma_1.prisma.students.count();
-    const students = yield prisma_1.prisma.students.findMany({
-        orderBy: { createdAt: 'desc' },
-        skip: pageSize * (page - 1),
-        take: pageSize,
-        select: {
-            id: true,
-            studentId: true,
-            firstName: true,
-            lastName: true,
-            otherName: true,
-            gender: true,
-            level: true,
-            subLevel: true,
-            yearAdmitted: true,
-            stateOfOrigin: true,
-            localGvt: true,
-            imageUrl: true,
-            createdAt: true,
-        },
-    });
+    // Prisma filter
+    const whereClause = Object.assign(Object.assign({}, (keyword && {
+        OR: [
+            { firstName: { contains: keyword, mode: 'insensitive' } },
+            { lastName: { contains: keyword, mode: 'insensitive' } },
+            { otherName: { contains: keyword, mode: 'insensitive' } },
+        ],
+    })), (level &&
+        level !== 'All' && {
+        level: { contains: level, mode: 'insensitive' },
+    }));
+    // If not admin, filter by their level/subLevel
+    if (!user.isAdmin) {
+        whereClause.level = user.level;
+        whereClause.subLevel = user.subLevel;
+    }
+    const [students, totalCount] = yield Promise.all([
+        prisma_1.prisma.student.findMany({
+            select: {
+                id: true,
+                studentId: true,
+                firstName: true,
+                lastName: true,
+                otherName: true,
+                dateOfBirth: true,
+                level: true,
+                subLevel: true,
+                isStudent: true,
+                isPaid: true,
+                gender: true,
+                yearAdmitted: true,
+                stateOfOrigin: true,
+                localGvt: true,
+                homeTown: true,
+                sponsorEmail: true,
+                sponsorName: true,
+                sponsorPhoneNumber: true,
+                sponsorRelationship: true,
+                imageUrl: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+            where: whereClause,
+            orderBy: { createdAt: 'desc' },
+            skip: pageSize * (page - 1),
+            take: pageSize,
+        }),
+        prisma_1.prisma.student.count({ where: whereClause }),
+    ]);
     res.status(200).json({
         students,
         page,
@@ -211,71 +264,6 @@ const getAllStudents = (0, express_async_handler_1.default)((req, res) => __awai
     });
 }));
 exports.getAllStudents = getAllStudents;
-// @desc Gets students by keyword or level
-// GET /api/students/search?keyword=...&level=...
-// @privacy Private
-const searchStudents = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.user) {
-        res.status(401);
-        throw new Error('Unauthorized');
-    }
-    const { keyword, level } = req.query;
-    const page = parseInt(req.query.pageNumber) || 1;
-    const pageSize = 30;
-    const where = {
-        AND: [],
-    };
-    if (keyword) {
-        where.AND.push({
-            OR: [
-                { firstName: { contains: keyword, mode: 'insensitive' } },
-                { lastName: { contains: keyword, mode: 'insensitive' } },
-                { otherName: { contains: keyword, mode: 'insensitive' } },
-            ],
-        });
-    }
-    if (level && level !== 'All') {
-        where.AND.push({
-            level: { contains: level, mode: 'insensitive' },
-        });
-    }
-    if (!req.user.isAdmin) {
-        where.AND.push({
-            level: req.user.level,
-            subLevel: req.user.subLevel,
-        });
-    }
-    if (where.AND.length === 0)
-        delete where.AND;
-    const totalCount = yield prisma_1.prisma.students.count({ where });
-    const students = yield prisma_1.prisma.students.findMany({
-        select: {
-            id: true,
-            studentId: true,
-            firstName: true,
-            lastName: true,
-            otherName: true,
-            gender: true,
-            level: true,
-            subLevel: true,
-            yearAdmitted: true,
-            stateOfOrigin: true,
-            localGvt: true,
-            imageUrl: true,
-            createdAt: true,
-        },
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: pageSize * (page - 1),
-        take: pageSize,
-    });
-    res.status(200).json({
-        students,
-        page,
-        totalPages: Math.ceil(totalCount / pageSize),
-    });
-}));
-exports.searchStudents = searchStudents;
 // GET /api/students/registered-by-me
 const getStudentsRegisteredByUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.user) {
@@ -285,24 +273,32 @@ const getStudentsRegisteredByUser = (0, express_async_handler_1.default)((req, r
     const userId = req.user.id;
     const page = parseInt(req.query.pageNumber) || 1;
     const pageSize = 30;
-    const totalCount = yield prisma_1.prisma.students.count({
+    const totalCount = yield prisma_1.prisma.student.count({
         where: {
             userId: userId,
         },
     });
-    const students = yield prisma_1.prisma.students.findMany({
+    const students = yield prisma_1.prisma.student.findMany({
         select: {
             id: true,
             studentId: true,
             firstName: true,
             lastName: true,
             otherName: true,
-            gender: true,
+            dateOfBirth: true,
             level: true,
             subLevel: true,
+            isStudent: true,
+            isPaid: true,
+            gender: true,
             yearAdmitted: true,
             stateOfOrigin: true,
             localGvt: true,
+            homeTown: true,
+            sponsorEmail: true,
+            sponsorName: true,
+            sponsorPhoneNumber: true,
+            sponsorRelationship: true,
             imageUrl: true,
             createdAt: true,
         },
@@ -326,7 +322,7 @@ const exportStudentsCSV = (0, express_async_handler_1.default)((req, res) => __a
         res.status(401);
         throw new Error('Unauthorized');
     }
-    const students = yield prisma_1.prisma.students.findMany({
+    const students = yield prisma_1.prisma.student.findMany({
         select: {
             studentId: true,
             firstName: true,
@@ -365,21 +361,30 @@ const getStudent = (0, express_async_handler_1.default)((req, res) => __awaiter(
         res.status(401);
         throw new Error('Unauthorized User');
     }
-    const student = yield prisma_1.prisma.students.findFirst({
+    const student = yield prisma_1.prisma.student.findFirst({
         select: {
             id: true,
             studentId: true,
             firstName: true,
             lastName: true,
             otherName: true,
-            gender: true,
+            dateOfBirth: true,
             level: true,
             subLevel: true,
+            isStudent: true,
+            isPaid: true,
+            gender: true,
             yearAdmitted: true,
             stateOfOrigin: true,
             localGvt: true,
+            homeTown: true,
+            sponsorEmail: true,
+            sponsorName: true,
+            sponsorPhoneNumber: true,
+            sponsorRelationship: true,
             imageUrl: true,
             createdAt: true,
+            updatedAt: true,
         },
         where: {
             id: req.params.id,
@@ -403,7 +408,7 @@ const updateStudent = (0, express_async_handler_1.default)((req, res) => __await
         res.status(401);
         throw new Error('Unauthorized User');
     }
-    const student = yield prisma_1.prisma.students.findFirst({
+    const student = yield prisma_1.prisma.student.findFirst({
         where: {
             id: req.params.id,
         },
@@ -412,19 +417,27 @@ const updateStudent = (0, express_async_handler_1.default)((req, res) => __await
         res.status(404);
         throw new Error('No Student Found!');
     }
-    const updateStudent = yield prisma_1.prisma.students.update({
+    const updateStudent = yield prisma_1.prisma.student.update({
         select: {
             id: true,
             studentId: true,
             firstName: true,
             lastName: true,
             otherName: true,
-            gender: true,
+            dateOfBirth: true,
             level: true,
             subLevel: true,
+            isStudent: true,
+            isPaid: true,
+            gender: true,
             yearAdmitted: true,
             stateOfOrigin: true,
             localGvt: true,
+            homeTown: true,
+            sponsorEmail: true,
+            sponsorName: true,
+            sponsorPhoneNumber: true,
+            sponsorRelationship: true,
             imageUrl: true,
             createdAt: true,
         },
@@ -462,7 +475,7 @@ const deleteStudent = (0, express_async_handler_1.default)((req, res) => __await
             res.status(401);
             throw new Error('Unauthorized User');
         }
-        const student = yield prisma_1.prisma.students.findUnique({
+        const student = yield prisma_1.prisma.student.findUnique({
             where: {
                 id: req.params.id,
             },
@@ -471,7 +484,7 @@ const deleteStudent = (0, express_async_handler_1.default)((req, res) => __await
             res.status(404);
             throw new Error('Student Not Found!');
         }
-        const deleteStudent = yield prisma_1.prisma.students.delete({
+        const deleteStudent = yield prisma_1.prisma.student.delete({
             where: {
                 id: student.id,
             },
@@ -491,7 +504,7 @@ const forgetPassword = (0, express_async_handler_1.default)((req, res) => __awai
     const { studentId } = validateData;
     try {
         // Find user by studentId
-        const student = yield prisma_1.prisma.students.findFirst({
+        const student = yield prisma_1.prisma.student.findFirst({
             where: {
                 studentId,
             },
@@ -508,7 +521,7 @@ const forgetPassword = (0, express_async_handler_1.default)((req, res) => __awai
             .update(resetToken)
             .digest('hex');
         const newDate = new Date(Date.now() + 60 * 60 * 1000);
-        const updateStudent = yield prisma_1.prisma.students.update({
+        const updateStudent = yield prisma_1.prisma.student.update({
             where: { id: student.id },
             data: {
                 resetPasswordToken: hashedToken,
@@ -516,7 +529,7 @@ const forgetPassword = (0, express_async_handler_1.default)((req, res) => __awai
             },
         });
         // Create reset URL to send in email
-        const resetUrl = `${process.env.PUBLIC_DOMAIN}/reset-password?token=${resetToken}`;
+        const resetUrl = `${process.env.PUBLIC_DOMAIN}/students/reset-password?token=${resetToken}`;
         // Send the email
         (0, emailService_1.sendSingleMail)({
             email: student.sponsorEmail,
@@ -546,7 +559,7 @@ const resetPassword = (0, express_async_handler_1.default)((req, res) => __await
             .createHash('sha256')
             .update(token)
             .digest('hex');
-        const student = yield prisma_1.prisma.students.findFirst({
+        const student = yield prisma_1.prisma.student.findFirst({
             where: {
                 resetPasswordToken: hashedToken,
                 resetPasswordExpires: {
@@ -560,7 +573,7 @@ const resetPassword = (0, express_async_handler_1.default)((req, res) => __await
             return;
         }
         const hashedPassword = yield bcrypt_1.default.hash(password, 12);
-        yield prisma_1.prisma.students.update({
+        yield prisma_1.prisma.student.update({
             where: { id: student.id },
             data: {
                 password: hashedPassword,
@@ -581,7 +594,7 @@ const resetPassword = (0, express_async_handler_1.default)((req, res) => __await
 }));
 exports.resetPassword = resetPassword;
 const exportStudentsPDF = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const students = yield prisma_1.prisma.students.findMany({
+    const students = yield prisma_1.prisma.student.findMany({
         select: {
             studentId: true,
             firstName: true,
@@ -603,7 +616,7 @@ const exportStudentsPDF = (0, express_async_handler_1.default)((req, res) => __a
 exports.exportStudentsPDF = exportStudentsPDF;
 const graduateStudent = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // Step 1: Fetch all students
-    const students = yield prisma_1.prisma.students.findMany();
+    const students = yield prisma_1.prisma.student.findMany();
     const unmappedLevels = [];
     let updatedCount = 0;
     // Step 2: Loop through and update each student
@@ -611,7 +624,7 @@ const graduateStudent = (0, express_async_handler_1.default)((req, res) => __awa
         const currentLevel = student.level;
         const nextLevel = classUtils_1.classProgression[currentLevel];
         if (nextLevel) {
-            yield prisma_1.prisma.students.update({
+            yield prisma_1.prisma.student.update({
                 where: { id: student.id },
                 data: { level: nextLevel },
             });

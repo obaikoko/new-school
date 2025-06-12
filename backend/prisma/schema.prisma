@@ -7,25 +7,26 @@ datasource db {
   url      = env("MONGO_URI")
 }
 
-model users {
-  id                   String     @id @default(auto()) @map("_id") @db.ObjectId
-  email                String     @unique
+model User {
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  email                String    @unique
   firstName            String
   lastName             String
-  role                 String     @default("teacher")
-  status               String     @default("active")
+  role                 String    @default("teacher")
+  status               String    @default("active")
   level                String?
   subLevel             String?
   password             String
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  isAdmin              Boolean    @default(false)
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
-  student              students[]
+  isAdmin              Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  student              Student[]
+  result               Result[]
 }
 
-model students {
+model Student {
   id                   String    @id @default(auto()) @map("_id") @db.ObjectId
   firstName            String
   lastName             String
@@ -38,7 +39,7 @@ model students {
   studentId            String?
   stateOfOrigin        String
   localGvt             String
-  homeTown             String
+  homeTown             String?
   sponsorName          String?
   sponsorRelationship  String?
   sponsorPhoneNumber   String?
@@ -52,8 +53,69 @@ model students {
   resetPasswordExpires DateTime?
 
   userId String @db.ObjectId
-  user   users  @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  results   Result[]
+}
+
+model StudentIdTracker {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  year       Int
+  level      String
+  lastNumber Int
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year, level])
+}
+
+model Result {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  studentId       String   @db.ObjectId
+  firstName       String
+  lastName        String
+  otherName       String?
+  image           String?
+  level           String
+  subLevel        String
+  term            String
+  session         String
+  position        String?
+  totalScore      Float?
+  averageScore    Float?
+  numberInClass   Int?
+  teacherRemark   String?
+  principalRemark String?
+  isPaid          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  // Embedded Types (JSON fields for arrays of subdocuments)
+  subjectResults      subjectResult[]
+  affectiveAssessment affectiveAssessment[]
+  psychomotor         psychomotor[]
+}
+
+type subjectResult {
+  subject    String
+  testScore  Float  @default(0)
+  examScore  Float  @default(0)
+  totalScore Float  @default(0)
+  grade      String @default("-")
+}
+
+type affectiveAssessment {
+  aCategory String
+  grade     String @default("-")
+}
+
+type psychomotor {
+  pCategory String
+  grade     String @default("-")
 }

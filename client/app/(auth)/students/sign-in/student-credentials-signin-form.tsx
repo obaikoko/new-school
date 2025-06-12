@@ -104,8 +104,13 @@ const StudentCredentialsSignInForm = () => {
 
         <div className='text-center text-sm text-muted-foreground'>
           Not a student?{' '}
-          <Link href='/sign-in' className='link'>
+          <Link href='/sign-in' className='link text-blue-400'>
             Signin to your account
+          </Link>
+        </div>
+        <div className='text-center text-sm text-muted-foreground'>
+          <Link href='/students/forget-password' className='link'>
+            Forgot Password?{' '}
           </Link>
         </div>
       </div>

@@ -1,6 +1,5 @@
 'use client';
 import NaijaStates from 'naija-state-local-government';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -14,13 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { levels, subLevel } from '@/lib/utils';
 
 import { showZodErrors } from '@/lib/utils';
 import { RegisterStudentForm } from '@/schemas/studentSchema';
-import {
-  studentSchema,
-  registerStudentSchema,
-} from '@/validators/studentValidation';
+import { registerStudentSchema } from '@/validators/studentValidation';
 import { useRegisterStudentMutation } from '@/src/features/students/studentApiSlice';
 import { useState } from 'react';
 import Spinner from '../spinner';
@@ -36,26 +33,14 @@ const RegisterStudentsForm = () => {
   });
 
   const [registerStudent, { isLoading }] = useRegisterStudentMutation();
-  const [selectedState, setSelectedState] = useState('')
+  const [selectedState, setSelectedState] = useState('');
   const states: string[] = NaijaStates.states();
   const getLgas = (state: string): string[] => NaijaStates.lgas(state).lgas;
-  
 
   const onSubmit = async (data: RegisterStudentForm) => {
     try {
-      const result = studentSchema.safeParse(
-        await registerStudent(data).unwrap()
-      );
-
-      if (!result.success) {
-        toast.error('Invalid response from server');
-        console.error(result.error);
-        return;
-      }
-
-      const res = result.data;
-
-      toast.success(`${res.firstName} ${res.lastName} registered successfully`);
+      await registerStudent(data).unwrap();
+      toast.success(` registered successfully`);
     } catch (err) {
       showZodErrors(err);
     }
@@ -63,7 +48,6 @@ const RegisterStudentsForm = () => {
 
   return (
     <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-      {/* Student Info */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div>
           <Label htmlFor='firstName'>First Name</Label>
@@ -112,19 +96,7 @@ const RegisterStudentsForm = () => {
               <SelectValue placeholder='Select level' />
             </SelectTrigger>
             <SelectContent>
-              {[
-                'Grade 1',
-                'Grade 2',
-                'Grade 3',
-                'Grade 4',
-                'Grade 5',
-                'JSS 1',
-                'JSS 2',
-                'JSS 3',
-                'SSS 1',
-                'SSS 2',
-                'SSS 3',
-              ].map((level) => (
+              {levels.map((level) => (
                 <SelectItem key={level} value={level}>
                   {level}
                 </SelectItem>
@@ -143,7 +115,7 @@ const RegisterStudentsForm = () => {
               <SelectValue placeholder='Select sub-level' />
             </SelectTrigger>
             <SelectContent>
-              {['A', 'B', 'C', 'D', 'E'].map((s) => (
+              {subLevel.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
                 </SelectItem>

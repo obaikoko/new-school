@@ -12,6 +12,5 @@ export type User = z.infer<typeof insertUserSchema> & {
   updatedAt: Date;
 };
 
-
 export type SendSingleMailProps = z.infer<typeof sendSingleMailSchema>;
 export type SendBulkMailProps = z.infer<typeof sendBulkMailSchema>;

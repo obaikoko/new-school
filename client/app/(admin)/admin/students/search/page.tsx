@@ -25,7 +25,9 @@ const StudentSearchPage = () => {
 
   return (
     <>
-      <StudentsSearch />
+      <div className='mb-10'>
+        <StudentsSearch />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Search Results</CardTitle>

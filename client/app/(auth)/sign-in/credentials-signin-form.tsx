@@ -102,7 +102,7 @@ const CrendentialsSignInForm = () => {
 
         <div className='text-center text-sm text-muted-foreground'>
           Are you a student?{' '}
-          <Link href='/student/sign-in' className='link'>
+          <Link href='/students/sign-in' className='link text-blue-400'>
             Signin to your student account
           </Link>
         </div>

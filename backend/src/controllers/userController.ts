@@ -22,8 +22,8 @@ const authUser = asyncHandler(
     try {
       const { email, password } = authUserSchema.parse(req.body);
 
-      const user = await prisma.users.findUnique({
-        where: { email },
+      const user = await prisma.user.findUnique({
+        where: { email: email },
         select: {
           id: true,
           email: true,
@@ -43,7 +43,7 @@ const authUser = asyncHandler(
         throw new Error('Invalid Email or Password');
       }
 
-      const authenticatedUser = await prisma.users.findUnique({
+      const authenticatedUser = await prisma.user.findUnique({
         where: { email },
         select: {
           id: true,
@@ -93,7 +93,7 @@ const registerUser = asyncHandler(
       const { firstName, lastName, email, password } = validateData;
 
       // check if user already exist
-      const userExit = await prisma.users.findFirst({
+      const userExit = await prisma.user.findFirst({
         where: {
           email: email,
         },
@@ -108,7 +108,7 @@ const registerUser = asyncHandler(
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // register new user
-      const user = await prisma.users.create({
+      const user = await prisma.user.create({
         data: {
           firstName,
           lastName,
@@ -143,9 +143,9 @@ const registerUser = asyncHandler(
 const getUserProfile = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const user = await prisma.users.findUnique({
+      const user = await prisma.user.findUnique({
         where: {
-          id: req.user?.id,
+          id: req.user!.id,
         },
         select: {
           id: true,
@@ -193,7 +193,7 @@ const updateUser = asyncHandler(
         isAdmin,
       } = validateData;
 
-      const user = await prisma.users.findFirst({
+      const user = await prisma.user.findFirst({
         where: { id: userId },
       });
       if (!user) {
@@ -204,7 +204,7 @@ const updateUser = asyncHandler(
       // Update fields conditionally
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await prisma.users.update({
+        await prisma.user.update({
           where: { id: user.id },
           data: {
             password: hashedPassword,
@@ -212,7 +212,7 @@ const updateUser = asyncHandler(
         });
       }
 
-      const updateUser = await prisma.users.update({
+      const updateUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           firstName: firstName ?? user.firstName,
@@ -225,7 +225,7 @@ const updateUser = asyncHandler(
           isAdmin: isAdmin ?? user.isAdmin,
         },
       });
-      const updatedUser = await prisma.users.findFirst({
+      const updatedUser = await prisma.user.findFirst({
         where: {
           id: updateUser.id,
         },
@@ -256,7 +256,7 @@ const updateUser = asyncHandler(
 const getUsers = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const users = await prisma.users.findMany({
+      const users = await prisma.user.findMany({
         select: {
           id: true,
           email: true,
@@ -283,7 +283,7 @@ const getUsers = asyncHandler(
 const getUserById = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const user = await prisma.users.findFirst({
+      const user = await prisma.user.findFirst({
         select: {
           id: true,
           email: true,
@@ -318,7 +318,7 @@ const getUserById = asyncHandler(
 const deleteUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const user = await prisma.users.findFirst({
+      const user = await prisma.user.findFirst({
         where: {
           id: req.params.id,
         },
@@ -329,7 +329,7 @@ const deleteUser = asyncHandler(
           res.status(400);
           throw new Error('Can not delete admin user');
         }
-        await prisma.users.delete({
+        await prisma.user.delete({
           where: {
             id: user.id,
           },
@@ -354,7 +354,13 @@ const sendMail = asyncHandler(
       const validateData = sendSingleMailSchema.parse(req.body);
       const { email, subject, text } = validateData;
 
-      if (!req.user.isAdmin) {
+      const user = req.user;
+      if (!user) {
+        res.status(401);
+        throw new Error('Unauthorized!');
+      }
+
+      if (!user.isAdmin) {
         res.status(401);
         throw new Error('Unauthorized Contact the adminitration');
       }
@@ -382,7 +388,7 @@ const forgetPassword = asyncHandler(
       }
 
       // Find user by email
-      const user = await prisma.users.findFirst({
+      const user = await prisma.user.findFirst({
         where: {
           email,
         },
@@ -402,7 +408,7 @@ const forgetPassword = asyncHandler(
         .digest('hex');
 
       const newDate = new Date(Date.now() + 60 * 60 * 1000);
-      const updateUser = await prisma.users.update({
+      const updateUser = await prisma.user.update({
         where: { email: email },
         data: {
           resetPasswordToken: hashedToken,
@@ -433,52 +439,55 @@ const forgetPassword = asyncHandler(
 // @privacy Public
 const resetPassword = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-   try {
-    const { token } = req.query;
-    if (!token || typeof token !== 'string') {
-      res.status(400).json({ message: 'No token provided' });
-      return;
-    }
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== 'string') {
+        res.status(400).json({ message: 'No token provided' });
+        return;
+      }
 
-    const { password } = resetPasswordSchema.parse(req.body);
+      const { password } = resetPasswordSchema.parse(req.body);
 
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+      const hashedToken = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
 
-    const user = await prisma.users.findFirst({
-      where: {
-        resetPasswordToken: hashedToken,
-        resetPasswordExpires: {
-          gt: new Date(),
+      const user = await prisma.user.findFirst({
+        where: {
+          resetPasswordToken: hashedToken,
+          resetPasswordExpires: {
+            gt: new Date(),
+          },
         },
-      },
-    });
+      });
 
-    if (!user) {
-      res.status(400).json({ message: 'Invalid or expired reset token' });
-      return;
+      if (!user) {
+        res.status(400).json({ message: 'Invalid or expired reset token' });
+        return;
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      });
+
+      await sendSingleMail({
+        email: user.email,
+        subject: `Password Reset Successful`,
+        text: `You have successfully reset your password. </br> NOTE: If you did not initiate this process, please change your password or contact the admin immediately.`,
+      });
+
+      res.status(200).json({ message: 'Password has been reset successfully' });
+    } catch (error) {
+      throw error;
     }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    await prisma.users.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        resetPasswordToken: null,
-        resetPasswordExpires: null,
-      },
-    });
-
-    await sendSingleMail({
-      email: user.email,
-      subject: `Password Reset Successful`,
-      text: `You have successfully reset your password. </br> NOTE: If you did not initiate this process, please change your password or contact the admin immediately.`,
-    });
-
-    res.status(200).json({ message: 'Password has been reset successfully' });
-   } catch (error) {
-    throw error
-   }
   }
 );
 

@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 const LEVELS = ['JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
 const SUB_LEVELS = ['A', 'B', 'C', 'D', 'E'];
@@ -112,7 +113,7 @@ export default function EditStudentDialog({
             onChange={handleInputChange}
             type='date'
           />
-
+          <Label htmlFor='gender'>Gender</Label>
           <Select
             value={formData.gender}
             onValueChange={(value) => handleSelectChange('gender', value)}
@@ -128,12 +129,12 @@ export default function EditStudentDialog({
               ))}
             </SelectContent>
           </Select>
-
+          <Label htmlFor='level'>Class</Label>
           <Select
             value={formData.level}
             onValueChange={(value) => handleSelectChange('level', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger id='level'>
               <SelectValue placeholder='Select Level' />
             </SelectTrigger>
             <SelectContent>
@@ -144,12 +145,12 @@ export default function EditStudentDialog({
               ))}
             </SelectContent>
           </Select>
-
+          <Label htmlFor='subLevel'>Sub Class</Label>
           <Select
             value={formData.subLevel}
             onValueChange={(value) => handleSelectChange('subLevel', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger id='subLevel'>
               <SelectValue placeholder='Select Sub-Level' />
             </SelectTrigger>
             <SelectContent>
@@ -192,16 +193,17 @@ export default function EditStudentDialog({
             onChange={handleInputChange}
             placeholder='Sponsor Name'
           />
-
+          <Label htmlFor='sponsorRelationship'>Sponsor Relationship</Label>
           <Select
             value={formData.sponsorRelationship}
             onValueChange={(value) =>
               handleSelectChange('sponsorRelationship', value)
             }
           >
-            <SelectTrigger>
+            <SelectTrigger id='sponsorRelationship'>
               <SelectValue placeholder='Sponsor Relationship' />
             </SelectTrigger>
+
             <SelectContent>
               {RELATIONSHIPS.map((r) => (
                 <SelectItem key={r} value={r}>

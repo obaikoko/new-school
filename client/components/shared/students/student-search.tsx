@@ -16,26 +16,7 @@ import { Search } from 'lucide-react';
 import { searchSchema } from '@/validators/studentValidation';
 import { SearchForm } from '@/schemas/studentSchema';
 import { useRouter } from 'next/navigation';
-
-const levels = [
-  'All',
-  'Creche',
-  'Lower Reception',
-  'Upper Reception',
-  'Nursery 1',
-  'Nursery 2',
-  'Grade 1',
-  'Grade 2',
-  'Grade 3',
-  'Grade 4',
-  'Grade 5',
-  'JSS 1',
-  'JSS 2',
-  'JSS 3',
-  'SSS 1',
-  'SSS 2',
-  'SSS 3',
-] as const;
+import { levels } from '@/lib/utils';
 
 const StudentsSearch = () => {
   const router = useRouter();
@@ -94,7 +75,7 @@ const StudentsSearch = () => {
                 <SelectValue placeholder='Select level' />
               </SelectTrigger>
               <SelectContent>
-                {levels.map((lvl) => (
+                {levels.map((lvl: string) => (
                   <SelectItem key={lvl} value={lvl}>
                     {lvl}
                   </SelectItem>

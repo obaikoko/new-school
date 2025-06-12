@@ -11,7 +11,7 @@ export const insertStudentSchema = z.object({
   yearAdmitted: z.coerce.date({ message: 'Invalid admission year' }),
   stateOfOrigin: z.string().min(1, 'State of origin is required'),
   localGvt: z.string().min(1, 'Local government is required'),
-  homeTown: z.string().min(1, 'Hometown is required'),
+  homeTown: z.string().min(1, 'Hometown is required').optional().nullable(),
   sponsorName: z.string().optional().nullable(),
   sponsorRelationship: z.string().optional().nullable(),
   sponsorPhoneNumber: z.string().optional().nullable(),

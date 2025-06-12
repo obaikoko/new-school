@@ -10,14 +10,14 @@ import {
   registerStudent,
   updateStudent,
   graduateStudent,
+  resetPassword,
 } from '../controllers/studentController';
-import { resetPassword } from '../controllers/userController';
 import { protect, admin } from '../middleware/authMiddleware';
 import express from 'express';
 
 const router = express.Router();
 router.route('/').get(protect, getAllStudents);
-router.route('/export').get(protect, admin, exportStudentsCSV);
+router.route('/export-cvs').get(protect, admin, exportStudentsCSV);
 router.route('/pdf').get(protect, exportStudentsPDF);
 router
   .route('/search/registered-user')

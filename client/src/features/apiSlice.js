@@ -1,8 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const baseQuery = fetchBaseQuery({
-  // baseUrl: 'https://bew-school-server.onrender.com',
-  baseUrl: 'http://localhost:5000',
+  baseUrl: process.env.NEXT_PUBLIC_API_URL,
 });
 export const apiSlice = createApi({
   baseQuery,

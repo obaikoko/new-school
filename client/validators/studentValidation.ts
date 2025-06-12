@@ -10,10 +10,36 @@ export const registerStudentSchema = z.object({
   yearAdmitted: z.coerce.date({ message: 'Invalid admission year' }),
   stateOfOrigin: z.string().min(1, 'State of origin is required'),
   localGvt: z.string().min(1, 'Local government is required'),
-  homeTown: z.string().min(1, 'Hometown is required'),
+  homeTown: z.string().min(1, 'Hometown is required').optional().nullable(),
   sponsorName: z.string().optional().nullable(),
   sponsorRelationship: z.string().optional().nullable(),
-  sponsorPhoneNumber: z.string().optional().nullable(),
+  sponsorPhoneNumber: z
+    .string()
+    .regex(/^\d{10,15}$/, 'Invalid phone number')
+    .optional()
+    .nullable(),
+  sponsorEmail: z.string().email('Invalid email address').optional().nullable(),
+});
+
+export const editStudentSchema = z.object({
+  firstName: z.string().min(3, 'First name must be at least 3 letters'),
+  lastName: z.string().min(3, 'Last name must be at least 3 letters'),
+  otherName: z.string().optional().nullable(),
+  dateOfBirth: z.coerce.date({ message: 'Invalid date of birth' }),
+  level: z.string().min(1, 'Student level cannot be empty'),
+  subLevel: z.string().min(1, 'Sub level category cannot be empty'),
+  gender: z.string().min(1, 'Gender is required'),
+  yearAdmitted: z.coerce.date({ message: 'Invalid admission year' }),
+  stateOfOrigin: z.string().min(1, 'State of origin is required'),
+  localGvt: z.string().min(1, 'Local government is required'),
+  homeTown: z.string().min(1, 'Hometown is required').optional().nullable(),
+  sponsorName: z.string().optional().nullable(),
+  sponsorRelationship: z.string().optional().nullable(),
+  sponsorPhoneNumber: z
+    .string()
+    .regex(/^\d{10,15}$/, 'Invalid phone number')
+    .optional()
+    .nullable(),
   sponsorEmail: z.string().email('Invalid email address').optional().nullable(),
 });
 
@@ -43,9 +69,16 @@ export const studentSchema = z.object({
   sponsorPhoneNumber: z.string().nullable(),
   sponsorRelationship: z.string().nullable(),
   imageUrl: z.string().nullable(),
+  
 });
 
 export const searchSchema = z.object({
   name: z.string().optional().nullable(),
   level: z.string(),
+});
+export const forgetPasswordSchema = z.object({
+  studentId: z.string().min(3, 'StudentId should be at least 3 characters'),
+});
+export const studentIdSchema = z.object({
+  studentId: z.string().min(3, 'StudentId should be at least 3 characters'),
 });

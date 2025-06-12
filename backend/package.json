@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "server": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/index.js"
   },
   "keywords": [],
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

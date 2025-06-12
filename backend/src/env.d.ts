@@ -7,5 +7,6 @@ declare namespace NodeJS {
     DEFAULTPASSWORD: string;
     GMAILEMAIL: string;
     GMAILPASSWORD: string;
+    PUBLIC_DOMAIN: string;
   }
 }
