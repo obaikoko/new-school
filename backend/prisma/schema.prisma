@@ -70,6 +70,55 @@ model StudentIdTracker {
   @@unique([year, level])
 }
 
+model NextTerm {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  reOpeningDate DateTime
+  level         String
+  term          String
+  session       String
+  busFee        Float?
+  nextTermFee   Float
+  otherCharges  Float?
+}
+
+model Staff {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  firstName     String
+  lastName      String
+  otherName     String?
+  dateOfBirth   DateTime
+  qualification String?
+  category      String?
+  role          String?
+  gender        String
+  maritalStatus String?
+  yearAdmitted  DateTime?
+  stateOfOrigin String?
+  localGvt      String?
+  homeTown      String?
+  residence     String?
+  phone         String
+  email         String    @unique
+  imageUrl      String? // URL from Cloudinary
+  imagePublicId String? // Public ID from Cloudinary
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Admission {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName   String
+  lastName    String
+  email       String
+  phone       String
+  childName   String
+  dateOfBirth DateTime
+  gender      String
+  level       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Result {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   userId          String   @db.ObjectId
@@ -89,6 +138,7 @@ model Result {
   teacherRemark   String?
   principalRemark String?
   isPaid          Boolean  @default(false)
+  isPublished     Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

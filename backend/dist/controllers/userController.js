@@ -45,6 +45,10 @@ const authUser = (0, express_async_handler_1.default)((req, res) => __awaiter(vo
             res.status(401);
             throw new Error('Invalid Email or Password');
         }
+        if (user.status === 'suspended') {
+            res.status(401);
+            throw new Error('Account deactivated');
+        }
         const authenticatedUser = yield prisma_1.prisma.user.findUnique({
             where: { email },
             select: {

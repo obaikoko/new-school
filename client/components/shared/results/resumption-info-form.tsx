@@ -1,123 +1,164 @@
 'use client';
 
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { nextTermDetailsSchema } from '@/validators/studentValidation';
+import { NextTermDetailsForm } from '@/schemas/studentSchema';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-  SelectItem,
-} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { levels, sessions, showZodErrors, terms } from '@/lib/utils';
+import { useAddNextTermInfoMutation } from '@/src/features/nextTerm/nextTermApiSlcie';
+import { Input } from '@/components/ui/input';
 
 const ResumptionInfoForm = () => {
-  const [formData, setFormData] = useState({
-    nextTermFees: '',
-    session: '',
-    term: '',
-    studentClass: '',
-    resumptionDate: '',
-    busFee: '',
-    otherCharges: '',
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<NextTermDetailsForm>({
+    resolver: zodResolver(nextTermDetailsSchema),
   });
 
-  const handleChange = (key: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
+  const [nextTermDetails, { isLoading }] = useAddNextTermInfoMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Resumption Info:', formData);
-    // Add submission logic here
+  const onSubmit = async (data: NextTermDetailsForm) => {
+    try {
+      await nextTermDetails({
+        session: data.session,
+        level: data.level,
+        term: data.term,
+        nextTermFee: data.nextTermFee,
+        reOpeningDate: data.reOpeningDate,
+        busFee: data.busFee,
+        otherCharges: data.otherCharges,
+      }).unwrap();
+      toast.success(`Uploaded successfully`);
+      reset();
+    } catch (err) {
+      showZodErrors(err);
+    }
   };
-
   return (
-    <form className='space-y-6 max-w-2xl' onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div>
-          <Label htmlFor='nextTermFees'>Next Term Fees</Label>
-          <Input
-            id='nextTermFees'
-            type='number'
-            value={formData.nextTermFees}
-            onChange={(e) => handleChange('nextTermFees', e.target.value)}
-          />
-        </div>
+          <div>
+            <Label htmlFor='reOpeningDate'>Reopening Date</Label>
+            <Input
+              type='date'
+              id='reOpeningDate'
+              {...register('reOpeningDate')}
+              className='bg-background text-foreground'
+            />
+            {errors.reOpeningDate && (
+              <p className='text-red-500 text-sm mt-1'>
+                {errors.reOpeningDate.message}
+              </p>
+            )}
+          </div>
 
-        <div>
-          <Label htmlFor='session'>Session</Label>
-          <Input
-            id='session'
-            value={formData.session}
-            onChange={(e) => handleChange('session', e.target.value)}
-            placeholder='e.g., 2024/2025'
-          />
+          <select
+            className='bg-background text-foreground'
+            {...register('session')}
+            defaultValue=''
+          >
+            <option value=''>Select Session</option>
+
+            {sessions.map((session, index) => (
+              <option key={index} value={session}>
+                {session}
+              </option>
+            ))}
+          </select>
+
+          {errors.session && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.session.message}
+            </p>
+          )}
         </div>
 
         <div>
           <Label htmlFor='term'>Term</Label>
-          <Select onValueChange={(value) => handleChange('term', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder='Select term' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='1st Term'>1st Term</SelectItem>
-              <SelectItem value='2nd Term'>2nd Term</SelectItem>
-              <SelectItem value='3rd Term'>3rd Term</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor='studentClass'>Class</Label>
-          <Select
-            onValueChange={(value) => handleChange('studentClass', value)}
+          <select
+            className='bg-background text-foreground'
+            {...register('term')}
           >
-            <SelectTrigger>
-              <SelectValue placeholder='Select class' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='JSS'>JSS</SelectItem>
-              <SelectItem value='SSS'>SSS</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value=''>Select Term</option>
+
+            {terms.map((term, index) => (
+              <option key={index} value={term}>
+                {term}
+              </option>
+            ))}
+          </select>
+          {errors.term && (
+            <p className='text-red-500 text-sm mt-1'>{errors.term.message}</p>
+          )}
         </div>
 
         <div>
-          <Label htmlFor='resumptionDate'>Resumption Date</Label>
-          <Input
-            id='resumptionDate'
-            type='date'
-            value={formData.resumptionDate}
-            onChange={(e) => handleChange('resumptionDate', e.target.value)}
-          />
+          <select
+            className='bg-background text-foreground'
+            {...register('level')}
+          >
+            <option value=''>Select Level/Class</option>
+
+            {levels.map((level, index) => (
+              <option key={index} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+          {errors.level && (
+            <p className='text-red-500 text-sm mt-1'>{errors.level.message}</p>
+          )}
         </div>
 
         <div>
-          <Label htmlFor='busFee'>Bus Fee</Label>
           <Input
-            id='busFee'
-            type='number'
-            value={formData.busFee}
-            onChange={(e) => handleChange('busFee', e.target.value)}
+            className='bg-background text-foreground'
+            {...register('nextTermFee')}
+            placeholder='Enter next fee (eg. 67,000)'
           />
+          {errors.nextTermFee && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.nextTermFee.message}
+            </p>
+          )}
         </div>
-
-        <div className='md:col-span-2'>
-          <Label htmlFor='otherCharges'>Other Charges</Label>
+        <div>
           <Input
-            id='otherCharges'
-            type='number'
-            value={formData.otherCharges}
-            onChange={(e) => handleChange('otherCharges', e.target.value)}
+            className='bg-background text-foreground'
+            {...register('busFee')}
+            placeholder='Enter Bus Fee (eg. 25,000)'
           />
+          {errors.busFee && (
+            <p className='text-red-500 text-sm mt-1'>{errors.busFee.message}</p>
+          )}
+        </div>
+        <div>
+          <Input
+            className='bg-background text-foreground'
+            {...register('otherCharges')}
+            placeholder='Enter Other Charges (eg. 10,000)'
+          />
+          {errors.otherCharges && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.otherCharges.message}
+            </p>
+          )}
         </div>
       </div>
 
-      <Button type='submit' className='w-full'>
-        Submit Resumption Info
+      <Button
+        type='submit'
+        className='w-full cursor-pointer'
+        disabled={isLoading}
+      >
+        {isLoading ? 'Processing...' : 'Upload'}
       </Button>
     </form>
   );

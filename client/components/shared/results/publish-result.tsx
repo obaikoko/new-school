@@ -1,97 +1,136 @@
 'use client';
 
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { generatePositionSchema } from '@/validators/resultValidator';
+import { GeneratePositionForm } from '@/schemas/resultSchema';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { levels, subLevels, sessions, showZodErrors, terms } from '@/lib/utils';
+import { useGeneratePositionsMutation } from '@/src/features/results/resultApiSlice';
 
 const PublishResultForm = () => {
-  const [formData, setFormData] = useState({
-    session: '',
-    term: '',
-    studentClass: '',
-    subClass: '',
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<GeneratePositionForm>({
+    resolver: zodResolver(generatePositionSchema),
   });
 
-  const handleChange = (key: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
+  const [generatePosition, { isLoading }] = useGeneratePositionsMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Publishing Result for:', formData);
-    // Add submit logic here
+  const onSubmit = async (data: GeneratePositionForm) => {
+    try {
+      await generatePosition({
+        session: data.session,
+        level: data.level,
+        term: data.term,
+        subLevel: data.subLevel,
+      }).unwrap();
+      toast.success(
+        `${data.level}  ${data.subLevel} results published successfully`
+      );
+      reset();
+    } catch (err) {
+      showZodErrors(err);
+    }
   };
-
   return (
-    <form className='space-y-6 max-w-xl' onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div>
-          <Label htmlFor='session'>Session</Label>
-          <Input
-            id='session'
-            value={formData.session}
-            onChange={(e) => handleChange('session', e.target.value)}
-            placeholder='e.g. 2024/2025'
-          />
+          <select
+            className='bg-background text-foreground'
+            {...register('session')}
+            defaultValue=''
+          >
+            <option value=''>Select Session</option>
+
+            {sessions.map((session, index) => (
+              <option key={index} value={session}>
+                {session}
+              </option>
+            ))}
+          </select>
+
+          {errors.session && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.session.message}
+            </p>
+          )}
         </div>
 
         <div>
           <Label htmlFor='term'>Term</Label>
-          <Select onValueChange={(value) => handleChange('term', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder='Select term' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='1st Term'>1st Term</SelectItem>
-              <SelectItem value='2nd Term'>2nd Term</SelectItem>
-              <SelectItem value='3rd Term'>3rd Term</SelectItem>
-            </SelectContent>
-          </Select>
+          <select
+            className='bg-background text-foreground'
+            {...register('term')}
+          >
+            <option value=''>Select Term</option>
+
+            {terms.map((term, index) => (
+              <option key={index} value={term}>
+                {term}
+              </option>
+            ))}
+          </select>
+          {errors.term && (
+            <p className='text-red-500 text-sm mt-1'>{errors.term.message}</p>
+          )}
         </div>
 
         <div>
-          <Label htmlFor='studentClass'>Class</Label>
-          <Select
-            onValueChange={(value) => handleChange('studentClass', value)}
+          <select
+            className='bg-background text-foreground'
+            {...register('level')}
           >
-            <SelectTrigger>
-              <SelectValue placeholder='Select class' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='JSS'>JSS</SelectItem>
-              <SelectItem value='SSS'>SSS</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value=''>Select Level/Class</option>
+
+            {levels.map((level, index) => (
+              <option key={index} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+          {errors.level && (
+            <p className='text-red-500 text-sm mt-1'>{errors.level.message}</p>
+          )}
         </div>
 
         <div>
-          <Label htmlFor='subClass'>Sub-Class</Label>
-          <Select
-            onValueChange={(value) => handleChange('subClass', value)}
+          <select
+            className='bg-background text-foreground'
+            {...register('subLevel')}
           >
-            <SelectTrigger>
-              <SelectValue placeholder='Select Arm' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='A'>A</SelectItem>
-              <SelectItem value='B'>B</SelectItem>
-              <SelectItem value='C'>C</SelectItem>
-              <SelectItem value='D'>D</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value=''>select Sub class category</option>
+
+            {subLevels.map((subLevel, index) => (
+              <option
+                className='bg-background text-foreground'
+                key={index}
+                value={subLevel}
+              >
+                {subLevel}
+              </option>
+            ))}
+          </select>
+          {errors.subLevel && (
+            <p className='text-red-500 text-sm mt-1'>
+              {errors.subLevel.message}
+            </p>
+          )}
         </div>
       </div>
 
-      <Button type='submit' className='w-full'>
-        Publish Result
+      <Button
+        type='submit'
+        className='w-full cursor-pointer'
+        disabled={isLoading}
+      >
+        {isLoading ? 'Processing...' : 'Publish Results'}
       </Button>
     </form>
   );

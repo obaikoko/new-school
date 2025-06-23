@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.graduateStudent = exports.exportStudentsPDF = exports.exportStudentsCSV = exports.updateStudent = exports.resetPassword = exports.forgetPassword = exports.deleteStudent = exports.getStudent = exports.getStudentsRegisteredByUser = exports.getAllStudents = exports.registerStudent = exports.authStudent = void 0;
+exports.graduateStudent = exports.exportStudentsCSV = exports.updateStudent = exports.resetPassword = exports.forgetPassword = exports.deleteStudent = exports.getStudent = exports.getStudentsRegisteredByUser = exports.getAllStudents = exports.registerStudent = exports.authStudent = void 0;
 // src/controllers/studentController.ts
 const json2csv_1 = require("json2csv");
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
@@ -20,8 +20,6 @@ const studentValidators_1 = require("../validators/studentValidators");
 const prisma_1 = require("../config/db/prisma"); // update with actual prisma instance path
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
-const generateStudentPdf_1 = require("../utils/generateStudentPdf");
-const generateStudentResult_1 = require("../utils/generateStudentResult");
 const emailService_1 = require("../services/emailService");
 const crypto_1 = __importDefault(require("crypto"));
 const usersValidators_1 = require("../validators/usersValidators");
@@ -593,27 +591,6 @@ const resetPassword = (0, express_async_handler_1.default)((req, res) => __await
     }
 }));
 exports.resetPassword = resetPassword;
-const exportStudentsPDF = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const students = yield prisma_1.prisma.student.findMany({
-        select: {
-            studentId: true,
-            firstName: true,
-            lastName: true,
-            level: true,
-            subLevel: true,
-        },
-    });
-    // const html = generateStudentHTML(students);
-    const html = (0, generateStudentResult_1.generateStudentResultHTML)();
-    const pdfBuffer = yield (0, generateStudentPdf_1.generateStudentPdf)(html);
-    const fileName = `students-report-${new Date().toISOString().split('T')[0]}.pdf`;
-    res.set({
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-    });
-    res.send(pdfBuffer);
-}));
-exports.exportStudentsPDF = exportStudentsPDF;
 const graduateStudent = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // Step 1: Fetch all students
     const students = yield prisma_1.prisma.student.findMany();

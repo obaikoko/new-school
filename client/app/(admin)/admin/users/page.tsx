@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Loader2, Pencil } from 'lucide-react';
+import { BookOpenCheck, Loader2, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -16,12 +16,14 @@ import {
   useGetUsersQuery,
   useUpdateUserMutation,
 } from '@/src/features/auth/usersApiSlice';
+import { useGetUsersDataQuery } from '@/src/features/data/dataApiSlice';
 import { toast } from 'sonner';
 
 import EditUserDialog from '@/components/shared/users/edit-user-dialog';
 import DeleteUserButton from '@/components/shared/users/delete-user-button';
 import { User } from '@/schemas/userSchema';
 import Link from 'next/link';
+import { showZodErrors } from '@/lib/utils';
 
 type UserFormData = {
   userId?: string;
@@ -37,6 +39,12 @@ type UserFormData = {
 const UsersPage = () => {
   const { data: users = [], isLoading, isError } = useGetUsersQuery({});
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const {
+    data: usersData,
+    isLoading: loadingUsersData,
+    isError: usersDataError,
+    refetch,
+  } = useGetUsersDataQuery({});
 
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -72,11 +80,11 @@ const UsersPage = () => {
 
     try {
       await updateUser({ id: selectedUser.id, ...formData }).unwrap();
+      refetch();
       toast.success('User updated successfully');
       setDialogOpen(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to update user');
+    } catch (error) {
+      showZodErrors(error);
     }
   };
 
@@ -97,6 +105,101 @@ const UsersPage = () => {
 
   return (
     <div className='p-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4'>
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>All Users</CardTitle>
+            <BookOpenCheck className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>
+              {' '}
+              {loadingUsersData ? (
+                <>
+                  <p>Loading...</p>
+                </>
+              ) : usersDataError ? (
+                <>
+                  <p>An Error occurred</p>
+                </>
+              ) : (
+                <> {usersData.totalUsers}</>
+              )}
+            </div>
+            <p className='text-xs text-muted-foreground'>In Total</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Admin Users</CardTitle>
+            <BookOpenCheck className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>
+              {' '}
+              {loadingUsersData ? (
+                <>
+                  <p>Loading...</p>
+                </>
+              ) : usersDataError ? (
+                <>
+                  <p>An Error occurred</p>
+                </>
+              ) : (
+                <> {usersData.adminUsers}</>
+              )}
+            </div>
+            <p className='text-xs text-muted-foreground'>Administrators</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Active</CardTitle>
+            <BookOpenCheck className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>
+              {' '}
+              {loadingUsersData ? (
+                <>
+                  <p>Loading...</p>
+                </>
+              ) : usersDataError ? (
+                <>
+                  <p>An Error occurred</p>
+                </>
+              ) : (
+                <> {usersData.activeUsers}</>
+              )}
+            </div>
+            <p className='text-xs text-muted-foreground'>Active</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Inactive</CardTitle>
+            <BookOpenCheck className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>
+              {' '}
+              {loadingUsersData ? (
+                <>
+                  <p>Loading...</p>
+                </>
+              ) : usersDataError ? (
+                <>
+                  <p>An Error occurred</p>
+                </>
+              ) : (
+                <> {usersData.suspendedUsers}</>
+              )}
+            </div>
+            <p className='text-xs  text-red-600'>Suspended</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Users</CardTitle>
@@ -135,7 +238,15 @@ const UsersPage = () => {
                         )}
                       </TableCell>
                       <TableCell>{user.role}</TableCell>
-                      <TableCell>{user.status}</TableCell>
+                      <TableCell
+                        className={`${
+                          user.status === 'suspended'
+                            ? 'text-red-600'
+                            : 'text-green-600'
+                        }`}
+                      >
+                        {user.status}
+                      </TableCell>
                       <TableCell className='text-right space-x-2'>
                         <Button
                           size='sm'

@@ -28,6 +28,10 @@ const protect = (0, express_async_handler_1.default)((req, res, next) => __await
         const user = yield prisma_1.prisma.user.findUnique({
             where: { id: decoded.userId },
         });
+        if ((user === null || user === void 0 ? void 0 : user.status) === 'suspended') {
+            res.status(401);
+            throw new Error('Account deactivated');
+        }
         const student = yield prisma_1.prisma.student.findUnique({
             where: { id: decoded.userId },
         });

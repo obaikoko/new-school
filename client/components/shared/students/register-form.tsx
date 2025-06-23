@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { levels, subLevel } from '@/lib/utils';
+import { levels, subLevels } from '@/lib/utils';
 
 import { showZodErrors } from '@/lib/utils';
 import { RegisterStudentForm } from '@/schemas/studentSchema';
@@ -109,13 +109,13 @@ const RegisterStudentsForm = () => {
           )}
         </div>
         <div>
-          <Label htmlFor='subLevel'>Sub-Level</Label>
+          <Label htmlFor='s'>Sub-Level</Label>
           <Select onValueChange={(value) => setValue('subLevel', value)}>
             <SelectTrigger>
               <SelectValue placeholder='Select sub-level' />
             </SelectTrigger>
             <SelectContent>
-              {subLevel.map((s) => (
+              {subLevels.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
                 </SelectItem>

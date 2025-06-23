@@ -1,4 +1,8 @@
 'use client';
+import {
+  useGetResultsDataQuery,
+  useGetResultsQuery,
+} from '@/src/features/results/resultApiSlice';
 
 import {
   Card,
@@ -7,54 +11,41 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { useState } from 'react';
 
-const results = [
-  {
-    id: 'RES001',
-    studentName: 'John Doe',
-    term: 'First Term',
-    session: '2023/2024',
-    class: 'JSS1',
-    status: 'Published',
-  },
-  {
-    id: 'RES002',
-    studentName: 'Jane Smith',
-    term: 'Second Term',
-    session: '2023/2024',
-    class: 'SS2',
-    status: 'Unpublished',
-  },
-  {
-    id: 'RES003',
-    studentName: 'Ahmed Bello',
-    term: 'First Term',
-    session: '2023/2024',
-    class: 'JSS3',
-    status: 'Published',
-  },
-];
+import ResultList from '@/components/shared/results/results-list';
+import Spinner from '@/components/shared/spinner';
+import Pagination from '@/components/shared/pagination';
+import { useState } from 'react';
+import DownloadResults from '@/components/shared/results/download-results-button';
 
 const AdminResultsPage = () => {
-  const [search, setSearch] = useState('');
+  const [page, setPage] = useState<number>(1);
 
-  const filteredResults = results.filter((result) =>
-    result.studentName.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: resultsData, isLoading, isError } = useGetResultsDataQuery({});
+  const {
+    data: results,
+    isLoading: loadingResults,
+    isError: resultsError,
+  } = useGetResultsQuery(page);
+  const totalPages = results?.totalPages ?? 1;
 
-  const total = results.length;
-  const published = results.filter((r) => r.status === 'Published').length;
-  const unpublished = results.filter((r) => r.status === 'Unpublished').length;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Spinner /> Loading...
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (isError || !results) {
+    return (
+      <Card>
+        <CardHeader>Error fetching data</CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <div className='p-4 space-y-6'>
@@ -67,7 +58,9 @@ const AdminResultsPage = () => {
             <CardTitle>Total Results</CardTitle>
             <CardDescription>All uploaded results</CardDescription>
           </CardHeader>
-          <CardContent className='text-3xl font-bold'>{total}</CardContent>
+          <CardContent className='text-3xl font-bold'>
+            {resultsData.totalResults}
+          </CardContent>
         </Card>
 
         <Card>
@@ -76,7 +69,7 @@ const AdminResultsPage = () => {
             <CardDescription>Visible to students</CardDescription>
           </CardHeader>
           <CardContent className='text-3xl font-bold text-green-600'>
-            {published}
+            {resultsData.publishedResults}
           </CardContent>
         </Card>
 
@@ -86,65 +79,24 @@ const AdminResultsPage = () => {
             <CardDescription>Pending publication</CardDescription>
           </CardHeader>
           <CardContent className='text-3xl font-bold text-red-600'>
-            {unpublished}
+            {resultsData.unpublishedResults}
           </CardContent>
         </Card>
       </div>
 
-      {/* Search */}
-      <div className='max-w-md'>
-        <Input
-          placeholder='Search by student name'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <DownloadResults />
 
       {/* Table */}
-      <div className='overflow-x-auto'>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Result ID</TableHead>
-              <TableHead>Student</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Term</TableHead>
-              <TableHead>Session</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredResults.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.id}</TableCell>
-                <TableCell>{r.studentName}</TableCell>
-                <TableCell>{r.class}</TableCell>
-                <TableCell>{r.term}</TableCell>
-                <TableCell>{r.session}</TableCell>
-                <TableCell
-                  className={
-                    r.status === 'Published'
-                      ? 'text-green-600 font-medium'
-                      : 'text-red-600 font-medium'
-                  }
-                >
-                  {r.status}
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredResults.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className='text-center py-4 text-muted-foreground'
-                >
-                  No matching results found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <ResultList
+        results={results.results}
+        loading={loadingResults}
+        error={resultsError}
+      />
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={(newPage) => setPage(newPage)}
+      />
     </div>
   );
 };

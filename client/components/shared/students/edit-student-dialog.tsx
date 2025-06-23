@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 
 const LEVELS = ['JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
 const SUB_LEVELS = ['A', 'B', 'C', 'D', 'E'];
-const GENDERS = ['male', 'female'];
+const GENDERS = ['Male', 'Female'];
 const RELATIONSHIPS = ['Father', 'Mother', 'Uncle', 'Aunty', 'Guardian'];
 
 interface EditStudentFormData {

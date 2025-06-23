@@ -30,3 +30,22 @@ export const classCodeMapping: Record<string, string> = {
   'SSS 2': 'S2',
   'SSS 3': 'S3',
 };
+
+export const levels: string[] = [
+  'Creche',
+  'Lower Reception',
+  'Upper Reception',
+  'Nursery 1',
+  'Nursery 2',
+  'Grade 1',
+  'Grade 2',
+  'Grade 3',
+  'Grade 4',
+  'Grade 5',
+  'JSS 1',
+  'JSS 2',
+  'JSS 3',
+  'SSS 1',
+  'SSS 2',
+  'SSS 3',
+];

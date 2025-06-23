@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { StudentResult } from '@/schemas/resultSchema';
 import {
@@ -37,8 +36,12 @@ const ResultHeader = ({ result }: { result: StudentResult }) => {
           </span>
         </div>
         <div className='flex items-center gap-2'>
-          <Badge variant='secondary'>{result.term}</Badge>
+          <CalendarDays className='w-4 h-4 text-purple-600' />
+          <span>
+            <strong>Term:</strong> {result.term}
+          </span>
         </div>
+      
         <div className='flex items-center gap-2'>
           <Star className='w-4 h-4 text-yellow-500' />
           <span>
@@ -48,7 +51,7 @@ const ResultHeader = ({ result }: { result: StudentResult }) => {
         <div className='flex items-center gap-2'>
           <LineChart className='w-4 h-4 text-blue-600' />
           <span>
-            <strong>Average:</strong> {result.averageScore}
+            <strong>Average:</strong> {result.averageScore.toString().slice(0, 5)}%
           </span>
         </div>
         <div className='flex items-center gap-2'>

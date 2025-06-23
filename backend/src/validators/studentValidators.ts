@@ -78,3 +78,19 @@ export const authStudentSchema = z.object({
   studentId: z.string().min(3, 'StudentId must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
+
+export const nextTermDetailsSchema = z.object({
+  nextTermFee: z.coerce.number().min(-1, 'Amount cannot be less than 0'),
+  session: z.string().min(1, 'Session cannot be empty'),
+  term: z.string().min(3, 'Term cannot be empty'),
+  level: z.string().min(3, 'Level/Class cannot be empty'),
+  reOpeningDate: z.string().min(3, ' Re-opening date cannot be empty '),
+  busFee: z.coerce.number().min(-1, 'Bus fee cannot be less than 0').optional(),
+  otherCharges: z.coerce.number().optional(),
+});
+
+export const getNextTermDetailsSchema = z.object({
+  session: z.string().min(3, 'Session should be more than 3 characters'),
+  term: z.string().min(3, 'term should be more than 3 characters'),
+  level: z.string().min(3, 'level should be more than 3 characters'),
+});

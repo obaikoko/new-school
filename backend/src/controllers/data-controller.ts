@@ -1,44 +1,7 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { prisma } from '../config/db/prisma'; // adjust this path based on where your Prisma client is
-
-type Gender = 'Male' | 'Female';
-type Level =
-  | 'Creche'
-  | 'Lower Reception'
-  | 'Upper Reception'
-  | 'Nursery 1'
-  | 'Nursery 2'
-  | 'Grade 1'
-  | 'Grade 2'
-  | 'Grade 3'
-  | 'Grade 4'
-  | 'Grade 5'
-  | 'JSS 1'
-  | 'JSS 2'
-  | 'JSS 3'
-  | 'SSS 1'
-  | 'SSS 2'
-  | 'SSS 3';
-
-const levels: Level[] = [
-  'Creche',
-  'Lower Reception',
-  'Upper Reception',
-  'Nursery 1',
-  'Nursery 2',
-  'Grade 1',
-  'Grade 2',
-  'Grade 3',
-  'Grade 4',
-  'Grade 5',
-  'JSS 1',
-  'JSS 2',
-  'JSS 3',
-  'SSS 1',
-  'SSS 2',
-  'SSS 3',
-];
+import { prisma } from '../config/db/prisma';
+import { levels } from '../utils/classUtils';
 
 const studentsData = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
@@ -48,8 +11,8 @@ const studentsData = asyncHandler(async (req: Request, res: Response) => {
 
   const allStudents = await prisma.student.findMany();
 
-  const genderCounts: Record<Gender, number> = { Male: 0, Female: 0 };
-  const levelGenderCounts: Record<Level, Record<Gender, number>> = {} as any;
+  const genderCounts: Record<string, number> = { Male: 0, Female: 0 };
+  const levelGenderCounts: Record<string, Record<string, number>> = {} as any;
 
   // Initialize levelGenderCounts
   for (const level of levels) {
@@ -59,8 +22,8 @@ const studentsData = asyncHandler(async (req: Request, res: Response) => {
   let paidFees = 0;
 
   for (const student of allStudents) {
-    const gender = student.gender as Gender;
-    const level = student.level as Level;
+    const gender: string = student.gender;
+    const level: string = student.level;
 
     if (gender === 'Male' || gender === 'Female') {
       genderCounts[gender]++;
@@ -98,4 +61,34 @@ const studentsData = asyncHandler(async (req: Request, res: Response) => {
   res.json(response);
 });
 
-export { studentsData };
+const userData = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const [total, adminUsers, activeUsers, suspendedUsers] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({
+        where: {
+          isAdmin: true,
+        },
+      }),
+      prisma.user.count({
+        where: {
+          status: 'active',
+        },
+      }),
+      prisma.user.count({
+        where: {
+          status: 'suspended',
+        },
+      }),
+    ]);
+
+    res.status(200).json({
+      totalUsers: total,
+      adminUsers: adminUsers,
+      activeUsers: activeUsers,
+      suspendedUsers: suspendedUsers,
+    });
+  }
+);
+
+export { studentsData, userData };

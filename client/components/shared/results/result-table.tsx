@@ -13,9 +13,6 @@ import { SubjectResult } from '@/schemas/resultSchema';
 const ResultTable = ({ results }: { results: SubjectResult[] }) => {
   return (
     <div className='p-4 rounded-xl shadow-md bg-white dark:bg-zinc-900'>
-     
-      
-
       <Table>
         <TableHeader>
           <TableRow>

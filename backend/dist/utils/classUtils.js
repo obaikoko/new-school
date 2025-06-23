@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.classCodeMapping = exports.classProgression = void 0;
+exports.levels = exports.classCodeMapping = exports.classProgression = void 0;
 exports.classProgression = {
     'Grade 1': 'Grade 2',
     'Grade 2': 'Grade 3',
@@ -32,3 +32,21 @@ exports.classCodeMapping = {
     'SSS 2': 'S2',
     'SSS 3': 'S3',
 };
+exports.levels = [
+    'Creche',
+    'Lower Reception',
+    'Upper Reception',
+    'Nursery 1',
+    'Nursery 2',
+    'Grade 1',
+    'Grade 2',
+    'Grade 3',
+    'Grade 4',
+    'Grade 5',
+    'JSS 1',
+    'JSS 2',
+    'JSS 3',
+    'SSS 1',
+    'SSS 2',
+    'SSS 3',
+];

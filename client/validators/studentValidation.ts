@@ -69,7 +69,6 @@ export const studentSchema = z.object({
   sponsorPhoneNumber: z.string().nullable(),
   sponsorRelationship: z.string().nullable(),
   imageUrl: z.string().nullable(),
-  
 });
 
 export const searchSchema = z.object({
@@ -82,3 +81,15 @@ export const forgetPasswordSchema = z.object({
 export const studentIdSchema = z.object({
   studentId: z.string().min(3, 'StudentId should be at least 3 characters'),
 });
+
+export const nextTermDetailsSchema = z.object({
+  nextTermFee: z.coerce.number().min(-1, 'Amount cannot be less than 0'),
+  session: z.string().min(1, 'Session cannot be empty'),
+  term: z.string().min(3, 'Term cannot be empty'),
+  level: z.string().min(3, 'Level/Class cannot be empty'),
+  reOpeningDate: z.string().min(3, ' Re-opening date cannot be empty '),
+  busFee: z.coerce.number().min(-1, 'Bus fee cannot be less than 0').optional(),
+  otherCharges: z.string().optional(),
+});
+
+

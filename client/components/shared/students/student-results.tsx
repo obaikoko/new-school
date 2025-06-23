@@ -1,3 +1,4 @@
+'use client';
 import {
   Card,
   CardContent,
@@ -8,17 +9,25 @@ import {
 import { useGetResultsForStudentQuery } from '@/src/features/results/resultApiSlice';
 import Spinner from '../spinner';
 import Link from 'next/link';
+import GenerateResultButton from '../results/generate-result-button';
+import { useAppSelector } from '@/src/app/hooks';
+// import { User } from '@/schemas/userSchema';
 
 const StudentResults = ({ studentId }: { studentId: string }) => {
+  const { user } = useAppSelector((state) => state.auth);
   const {
     data: results,
     isLoading,
     isError,
   } = useGetResultsForStudentQuery(studentId);
+
   if (isLoading) {
     return (
       <Card>
-        <Spinner /> <CardDescription>Loading...</CardDescription>
+        <CardContent className='flex items-center gap-2'>
+          <Spinner />
+          <CardDescription>Loading...</CardDescription>
+        </CardContent>
       </Card>
     );
   }
@@ -26,10 +35,13 @@ const StudentResults = ({ studentId }: { studentId: string }) => {
   if (isError) {
     return (
       <Card>
-        <CardDescription>Unable to fetch results...</CardDescription>
+        <CardContent>
+          <CardDescription>Unable to fetch results...</CardDescription>
+        </CardContent>
       </Card>
     );
   }
+
   return (
     <Card>
       <CardHeader>
@@ -38,14 +50,25 @@ const StudentResults = ({ studentId }: { studentId: string }) => {
       </CardHeader>
 
       <CardContent>
+        {/* Generate Button aligned to left */}
+        <div className='mb-4'>
+          <GenerateResultButton studentId={studentId} />
+        </div>
+
+        {/* Result list */}
         <div className='flex flex-wrap gap-3'>
           {results &&
             results.map((result, index) => (
               <Link
-                href={`/admin/results/${result.id}`}
+                href={
+                  user.isAdmin
+                    ? `/admin/results/${result.id}`
+                    : `/user/results/${result.id}`
+                }
                 key={index}
                 className='w-full sm:w-[48%] md:w-[30%] lg:w-[22%] p-3 border rounded-lg hover:bg-muted transition text-sm'
               >
+                <p className='font-medium'>{result.level}</p>
                 <p className='font-medium'>{result.term}</p>
                 <p className='text-xs text-muted-foreground'>
                   {result.session}

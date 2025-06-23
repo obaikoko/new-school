@@ -1,9 +1,13 @@
 import { NEXTTERM_URL } from '../constants';
 import { apiSlice } from '../apiSlice';
+import { NextTermDetailsForm } from '@/schemas/studentSchema';
 
 export const nextTermApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getNextTermInfo: builder.query({
+    getNextTermInfo: builder.query<
+      NextTermDetailsForm,
+      { level: string; session: string; term: string }
+    >({
       query: ({ level, session, term }) => ({
         url: `${NEXTTERM_URL}/?level=${level}&session=${session}&term=${term}`,
       }),
@@ -17,8 +21,7 @@ export const nextTermApiSlice = apiSlice.injectEndpoints({
         body: data,
         credentials: 'include',
       }),
-      providesTags: ['NextTerm'],
-      keepUnusedDataFor: 5,
+      invalidatesTags: ['NextTerm'],
     }),
     //     deleteEvent: builder.mutation({
     //       query: (evebtId) => ({

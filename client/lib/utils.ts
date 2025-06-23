@@ -51,7 +51,27 @@ export const levels: string[] = [
   'GRADUATED',
 ];
 
-export const subLevel: string[] = ['A', 'B', 'C', 'D', 'E'];
+export const subLevels: string[] = ['A', 'B', 'C', 'D', 'E'];
+export const grade: string[] = ['A', 'B', 'C', 'D', 'E', 'F'];
+export const categories: string[] = [
+  'Attendance',
+  'Carefulness',
+  'Honesty',
+  'Neatness',
+  'Obedience',
+  'Politeness',
+  'Punctuality',
+  'Responsibility',
+];
+export const psychomotorCategories = [
+  'Handwriting',
+  'Drawing',
+  'Sport',
+  'Speaking',
+  'Music',
+  'Craft',
+  'ComputerPractice',
+];
 
 export const sessions: string[] = [
   '2024/2025',
@@ -60,4 +80,36 @@ export const sessions: string[] = [
   '2027/2028',
   '2028/2029',
   '2029/2030',
+];
+export const terms: string[] = ['First', 'Second', 'Third'];
+export const subjects: string[] = [
+  'Agricultural Science',
+  'Basic Science',
+  'Basic Technology',
+  'Biology',
+  'Civic Education',
+  'Christian Religious Studies',
+  'Commerce',
+  'Computer Studies',
+  'Cultural and Creative Arts',
+  'Economics',
+  'English Language',
+  'Financial Accounting',
+  'Further Mathematics',
+  'Geography',
+  'Government',
+  'Home Economics',
+  'Integrated Science',
+  'Islamic Religious Studies',
+  'Literature in English',
+  'Mathematics',
+  'Music',
+  'Physical and Health Education',
+  'Physics',
+  'Pre-Vocational Studies',
+  'Quantitative Reasoning',
+  'Social Studies',
+  'Verbal Reasoning',
+  'Vocational Aptitude',
+  'Yoruba Language',
 ];

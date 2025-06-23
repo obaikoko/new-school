@@ -43,6 +43,11 @@ const authUser = asyncHandler(
         throw new Error('Invalid Email or Password');
       }
 
+      if (user.status === 'suspended') {
+        res.status(401);
+        throw new Error('Account deactivated');
+      }
+
       const authenticatedUser = await prisma.user.findUnique({
         where: { email },
         select: {

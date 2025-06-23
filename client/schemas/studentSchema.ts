@@ -7,6 +7,7 @@ import {
   forgetPasswordSchema,
   editStudentSchema,
   studentIdSchema,
+  nextTermDetailsSchema,
 } from '@/validators/studentValidation';
 
 export type AuthStudentForm = z.infer<typeof authStudentSchema>;
@@ -26,6 +27,7 @@ export type Students = {
 export type SearchForm = z.infer<typeof searchSchema>;
 export type ForgetPassword = z.infer<typeof forgetPasswordSchema>;
 export type StudentId = z.infer<typeof studentIdSchema>;
+export type NextTermDetailsForm = z.infer<typeof nextTermDetailsSchema>;
 
 export type StudentFormData = {
   studentId?: string;

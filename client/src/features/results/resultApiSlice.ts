@@ -12,6 +12,14 @@ export const resultsApiSlice = apiSlice.injectEndpoints({
       providesTags: ['Results'],
       keepUnusedDataFor: 5,
     }),
+    getResultsData: builder.query({
+      query: () => ({
+        url: `${RESULTS_URL}/data`,
+        credentials: 'include',
+      }),
+      providesTags: ['Results'],
+      keepUnusedDataFor: 5,
+    }),
     getResult: builder.query<StudentResult, string>({
       query: (resultId) => ({
         url: `${RESULTS_URL}/${resultId}`,
@@ -107,6 +115,7 @@ export const resultsApiSlice = apiSlice.injectEndpoints({
 export const {
   useGetResultQuery,
   useGetResultsQuery,
+  useGetResultsDataQuery,
   useGetResultsForStudentQuery,
   useSearchResultsQuery,
   useUpdateResultMutation,

@@ -26,6 +26,11 @@ const protect = asyncHandler(
         where: { id: decoded.userId },
       });
 
+      if (user?.status === 'suspended') {
+        res.status(401);
+        throw new Error('Account deactivated');
+      }
+
       const student = await prisma.student.findUnique({
         where: { id: decoded.userId },
       });

@@ -47,7 +47,7 @@ const CrendentialsSignInForm = () => {
       dispatch(setCredentials(res));
 
       toast.success(`Welcome ${res.firstName} ${res.lastName}`);
-      router.push(res.isAdmin ? '/admin/dashboard' : '/users/dashboard');
+      router.push(res.isAdmin ? '/admin/dashboard' : '/user/dashboard');
     } catch (err) {
       showZodErrors(err);
     }

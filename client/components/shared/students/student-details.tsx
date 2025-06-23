@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { StudentFormData, StudentId } from '@/schemas/studentSchema';
 
 import DeleteStudentButton from './delete-student-button';
+import Image from 'next/image';
 
 const StudentDetails = ({ studentId }: StudentId) => {
   const { data: student, isLoading, isError } = useGetStudentQuery(studentId);
@@ -96,22 +97,31 @@ const StudentDetails = ({ studentId }: StudentId) => {
     }
   };
 
-  
-
   return (
     <div className='max-w-4xl mx-auto p-6 space-y-6'>
       <h1 className='text-3xl font-semibold'>Student Profile</h1>
       <Card>
         <CardContent className='p-6 flex gap-6'>
-          <Avatar className='w-24 h-24'>
-            <AvatarImage
-              src={`https://ui-avatars.com/api/?name=${student.lastName}+${student.firstName}`}
+          {student.imageUrl ? (
+            <Image
+              className='rounded'
+              width={150}
+              height={120}
+              alt='Image'
+              src={`${student.imageUrl}`}
             />
-            <AvatarFallback>
-              {student.firstName[0]}
-              {student.lastName[0]}
-            </AvatarFallback>
-          </Avatar>
+          ) : (
+            <Avatar className='w-24 h-24'>
+              <AvatarImage
+                src={`https://ui-avatars.com/api/?name=${student.lastName}+${student.firstName}`}
+              />
+              <AvatarFallback>
+                {student.firstName[0]}
+                {student.lastName[0]}
+              </AvatarFallback>
+            </Avatar>
+          )}
+
           <div className='space-y-1'>
             <h2 className='text-xl font-medium'>
               {student.lastName} {student.firstName} {student.otherName}

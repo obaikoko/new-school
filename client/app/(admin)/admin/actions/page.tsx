@@ -28,6 +28,8 @@ import RegisterStudentsForm from '@/components/shared/students/register-form';
 import PublishResultForm from '@/components/shared/results/publish-result';
 import ResumptionInfoForm from '@/components/shared/results/resumption-info-form';
 import RegisterUsersForm from '@/components/shared/users/register-form';
+import AddSubjectToResult from '@/components/shared/results/add-subject-result';
+import RemoveSubjectFromResult from '@/components/shared/results/remove-subject';
 
 const actions = [
   {
@@ -41,6 +43,18 @@ const actions = [
     description: 'Add new students to the system.',
     icon: Users,
     content: <RegisterStudentsForm />,
+  },
+  {
+    title: 'Add Subjects',
+    description: 'Create and manage subjects offered.',
+    icon: BookOpen,
+    content: <AddSubjectToResult />,
+  },
+  {
+    title: 'Remove Subjects',
+    description: 'Create and manage subjects offered.',
+    icon: BookOpen,
+    content: <RemoveSubjectFromResult />,
   },
   {
     title: 'Publish Results',
@@ -60,12 +74,7 @@ const actions = [
     icon: CalendarCheck,
     content: <div>Timetable Management Form</div>,
   },
-  {
-    title: 'Add Subjects',
-    description: 'Create and manage subjects offered.',
-    icon: BookOpen,
-    content: <div>Subjects Management Form</div>,
-  },
+
   {
     title: 'Post Announcements',
     description: 'Share important info with staff/students.',

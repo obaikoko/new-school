@@ -22,7 +22,7 @@ import { Loader2 } from 'lucide-react';
 const ROLES = ['Admin', 'Principal', 'HM', 'Head Of Department', 'Teacher'];
 const LEVELS = ['JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
 const SUB_LEVELS = ['A', 'B', 'C', 'D', 'E'];
-const STATUSES = ['active', 'inactive', 'suspended'];
+const STATUSES = ['active', 'suspended'];
 interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

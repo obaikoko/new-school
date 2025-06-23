@@ -690,33 +690,6 @@ const resetPassword = asyncHandler(
   }
 );
 
-const exportStudentsPDF = asyncHandler(async (req: Request, res: Response) => {
-  const students = await prisma.student.findMany({
-    select: {
-      studentId: true,
-      firstName: true,
-      lastName: true,
-      level: true,
-      subLevel: true,
-    },
-  });
-
-  // const html = generateStudentHTML(students);
-  const html = generateStudentResultHTML();
-  const pdfBuffer = await generateStudentPdf(html);
-
-  const fileName = `students-report-${
-    new Date().toISOString().split('T')[0]
-  }.pdf`;
-
-  res.set({
-    'Content-Type': 'application/pdf',
-    'Content-Disposition': `attachment; filename="${fileName}"`,
-  });
-
-  res.send(pdfBuffer);
-});
-
 const graduateStudent = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     // Step 1: Fetch all students
@@ -762,6 +735,5 @@ export {
   resetPassword,
   updateStudent,
   exportStudentsCSV,
-  exportStudentsPDF,
   graduateStudent,
 };
